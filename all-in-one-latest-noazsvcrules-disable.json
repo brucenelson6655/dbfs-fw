@@ -1,0 +1,124 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "workspaceName": {
+        "type": "string",
+        "metadata": {
+          "description": "The name of the Azure Databricks workspace to update."
+        }
+      },
+      "managedResourceGroupName": {
+        "type": "string",
+        "defaultValue": "[format('databricks-rg-{0}-{1}', parameters('workspaceName'), uniqueString(parameters('workspaceName'), resourceGroup().id))]",
+        "metadata": {
+          "description": "The managedResourceGroupName of the workspace."
+        }
+      },
+      "customVirtualNetworkId": {
+        "type": "string",
+        "metadata": {
+          "description": "The ID of the injected vnet for the workspace"
+        }
+      },
+      "customPrivateSubnetName": {
+        "defaultValue": "private-subnet",
+        "type": "string",
+        "metadata": {
+          "description": "The private subnet name for the workspace"
+        }
+      },
+      "customPublicSubnetName": {
+        "defaultValue": "public-subnet",
+        "type": "string",
+        "metadata": {
+          "description": "The public subnet name for the workspace"
+        }
+      },
+      "workspaceSku": {
+        "type": "string",
+        "defaultValue": "premium",
+        "metadata": {
+          "description": "The sku of the workspace."
+        }
+      },
+      "location": {
+        "defaultValue": "[resourceGroup().location]",
+        "type": "string",
+        "metadata": {
+          "description": "Location for all resources."
+        }
+      },
+      "disablePublicIp": {
+        "type": "bool",
+        "defaultValue": true,
+        "metadata": {
+          "description": "Specifies whether to deploy Azure Databricks workspace with secure cluster connectivity (SCC) enabled or not (No Public IP)."
+        }
+      },
+      "publicNetworkAccess": {
+        "type": "string",
+        "defaultValue": "Disabled",
+        "allowedValues": [
+          "Enabled",
+          "Disabled"
+        ],
+        "metadata": {
+          "description": "Indicates whether public network access is allowed to the workspace with private endpoint - possible values are Enabled or Disabled."
+        }
+      },
+      "PrivateArtifactResourceID": {
+        "defaultValue": "required for NoArzureServiceRules",
+        "type": "string",
+        "metadata": {
+          "description": "The resource ID of the private artifact store"
+        }
+      },
+      "requiredNsgRules": {
+        "type": "string",
+        "defaultValue": "NoAzureServiceRules",
+        "allowedValues": [
+          "AllRules",
+          "NoAzureDatabricksRules",
+          "NoAzureServiceRules"
+        ],
+        "metadata": {
+          "description": "Indicates whether to retain or remove the AzureDatabricks outbound NSG rule - possible values are AllRules or NoAzureDatabricksRules."
+        }
+      }
+    },
+    "resources": [
+      {
+        "type": "Microsoft.Databricks/workspaces",
+        "apiVersion": "2023-04-01-preview",
+        "name": "[parameters('workspaceName')]",
+        "location": "[parameters('location')]",
+        "sku": {
+          "name": "[parameters('workspaceSku')]"
+        },
+        "properties": {
+          "managedResourceGroupId": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('managedResourceGroupName'))]",
+          "publicNetworkAccess": "[parameters('publicNetworkAccess')]",
+          "requiredNsgRules": "[parameters('requiredNsgRules')]",
+          "privateLinkAssets": [
+            "[parameters('PrivateArtifactResourceID')]"
+          ],
+          "privateDbfsAccess": "Disabled",
+          "parameters": {
+            "customVirtualNetworkId": {
+              "value": "[parameters('customVirtualNetworkId')]"
+            },
+            "customPrivateSubnetName": {
+              "value": "[parameters('customPrivateSubnetName')]"
+            },
+            "customPublicSubnetName": {
+              "value": "[parameters('customPublicSubnetName')]"
+            },
+            "enableNoPublicIp": {
+              "value": "[parameters('disablePublicIp')]"
+            }
+          }
+        }
+      }
+    ]
+  }  
