@@ -18,7 +18,7 @@
       "customVirtualNetworkId": {
         "type": "string",
         "metadata": {
-          "description": "The ID of the injected vnet for the workspace"
+          "description": "The Rescource ID of the injected vnet for the workspace"
         }
       },
       "customPrivateSubnetName": {
@@ -56,6 +56,17 @@
           "description": "The access connector to create for the workspace"
         }
       },
+      "privateDBFSstate": {
+        "defaultValue": "Enabled",
+        "type": "string",
+        "allowedValues": [
+          "Enabled",
+          "Disabled"
+        ],
+        "metadata":{ 
+          "description": "Enable or Disable private DBFS feature"
+          }
+      },
       "disablePublicIp": {
         "type": "bool",
         "defaultValue": true,
@@ -65,7 +76,7 @@
       },
       "publicNetworkAccess": {
         "type": "string",
-        "defaultValue": "Disabled",
+        "defaultValue": "Enabled",
         "allowedValues": [
           "Enabled",
           "Disabled"
@@ -76,7 +87,7 @@
       },
       "requiredNsgRules": {
         "type": "string",
-        "defaultValue": "NoAzureDatabricksRules",
+        "defaultValue": "AllRules",
         "allowedValues": [
           "AllRules",
           "NoAzureDatabricksRules"
@@ -116,7 +127,7 @@
              "identityType":"SystemAssigned"
   
           },
-          "privateDbfsAccess": "Enabled",
+          "privateDbfsAccess": "[parameters('privateDBFSstate')]",
           "parameters": {
             "customVirtualNetworkId": {
               "value": "[parameters('customVirtualNetworkId')]"
