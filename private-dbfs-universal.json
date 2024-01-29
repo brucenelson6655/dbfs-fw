@@ -16,10 +16,10 @@
         }
       },
       "customVirtualNetworkId": {
-        "defaultValue": "The Rescource ID of the workspace VNet",
+        "defaultValue": "The Resource ID of the workspace VNet",
         "type": "string",
         "metadata": {
-          "description": "The Rescource ID of the injected vnet for the workspace"
+          "description": "The Resource ID of the injected vnet for the workspace"
         }
       },
       "customPrivateSubnetName": {
