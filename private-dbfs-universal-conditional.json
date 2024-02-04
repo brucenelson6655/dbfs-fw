@@ -86,7 +86,7 @@
         "description": "Enable or Disable private DBFS feature"
       }
     },
-    "IsUcByDefaultEnabled": {
+    "IsUCByDefaultEnabled": {
       "defaultValue": false,
       "type": "bool",
       "metadata": {
@@ -126,26 +126,26 @@
       "defaultValue": false,
       "type": "bool",
       "metadata": {
-        "description": "Is CMK for services enabled ?"
+        "description": "Is CMK for managed services enabled ?"
       }
     },
     "keyVaultUri": {
       "type": "string",
-      "defaultValue": "Required for CMK only",
+      "defaultValue": "Required for CMK for managed services only",
       "metadata": {
         "description": "The Key Vault URI"
       }
     },
     "keyName": {
       "type": "string",
-      "defaultValue": "Required for CMK only",
+      "defaultValue": "Required for CMK for managed services only",
       "metadata": {
         "description": "The Key Name"
       }
     },
     "keyVersion": {
       "type": "string",
-      "defaultValue": "Required for CMK only",
+      "defaultValue": "Required for CMK for managed services only",
       "metadata": {
         "description": "The Key Version"
       }
