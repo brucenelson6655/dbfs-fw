@@ -34,7 +34,7 @@
       }
     },
     "customVirtualNetworkId": {
-      "defaultValue": "The Resource ID of the workspace VNet",
+      "defaultValue": "** The Resource ID of the workspace VNet **",
       "type": "string",
       "metadata": {
         "description": "The Resource ID of the injected vnet for the workspace"
@@ -90,7 +90,14 @@
       "defaultValue": false,
       "type": "bool",
       "metadata": {
-        "description": "Is UC by default enabled ?"
+        "description": "Is UC by default enabled ? Defaults to False"
+      }
+    },
+    "PrivateArtifactResourceID": {
+      "defaultValue": "** Required for NoArzureServiceRules **",
+      "type": "string",
+      "metadata": {
+        "description": "The resource ID of the private artifact store"
       }
     },
     "disablePublicIp": {
@@ -113,13 +120,14 @@
     },
     "requiredNsgRules": {
       "type": "string",
-      "defaultValue": "AllRules",
+      "defaultValue": "NoAzureServiceRules",
       "allowedValues": [
         "AllRules",
-        "NoAzureDatabricksRules"
+        "NoAzureDatabricksRules",
+        "NoAzureServiceRules"
       ],
       "metadata": {
-        "description": "Indicates whether to retain or remove the AzureDatabricks outbound NSG rule - possible values are AllRules, NoAzureDatabricksRules (private link)."
+        "description": "Indicates whether to retain or remove the AzureDatabricks outbound NSG rule - possible values are AllRules, NoAzureDatabricksRules (private link), NoAzureServiceRules (private assets)."
       }
     },
     "customerManagedKeysEnabled": {
@@ -151,6 +159,9 @@
       }
     }
   },
+  "variables": {
+
+  },
   "resources": [
     {
       "condition": "[or (and (equals(parameters('privateDBFS'), 'Disabled'), parameters('IsUcByDefaultEnabled')), equals(parameters('privateDBFS'), 'Enabled'))]",
@@ -164,6 +175,8 @@
       "properties": {}
     },
     {
+
+      
       "condition": "[or (and (equals(parameters('privateDBFS'), 'Disabled'), parameters('IsUcByDefaultEnabled'), not(parameters('customerManagedKeysEnabled'))), and (equals(parameters('privateDBFS'), 'Enabled'), not(parameters('customerManagedKeysEnabled'))))]",
       "type": "Microsoft.Databricks/workspaces",
       "apiVersion": "[parameters('ApiVersion')]",
@@ -179,6 +192,9 @@
         "managedResourceGroupId": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('managedResourceGroupName'))]",
         "publicNetworkAccess": "[parameters('publicNetworkAccess')]",
         "requiredNsgRules": "[parameters('requiredNsgRules')]",
+        "privateLinkAssets": [
+          "[parameters('PrivateArtifactResourceID')]"
+        ],
         "accessConnector": {
           "id": "[resourceId('Microsoft.Databricks/accessConnectors', parameters('accessConnectorName'))]",
           "identityType": "SystemAssigned"
@@ -217,6 +233,9 @@
         "managedResourceGroupId": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('managedResourceGroupName'))]",
         "publicNetworkAccess": "[parameters('publicNetworkAccess')]",
         "requiredNsgRules": "[parameters('requiredNsgRules')]",
+        "privateLinkAssets": [
+          "[parameters('PrivateArtifactResourceID')]"
+        ],
         "privateDbfsAccess": "Disabled",
         "parameters": {
           "customVirtualNetworkId": {
@@ -253,6 +272,9 @@
         "managedResourceGroupId": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('managedResourceGroupName'))]",
         "publicNetworkAccess": "[parameters('publicNetworkAccess')]",
         "requiredNsgRules": "[parameters('requiredNsgRules')]",
+        "privateLinkAssets": [
+          "[parameters('PrivateArtifactResourceID')]"
+        ],
         "accessConnector": {
           "id": "[resourceId('Microsoft.Databricks/accessConnectors', parameters('accessConnectorName'))]",
           "identityType": "SystemAssigned"
@@ -302,6 +324,9 @@
         "managedResourceGroupId": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('managedResourceGroupName'))]",
         "publicNetworkAccess": "[parameters('publicNetworkAccess')]",
         "requiredNsgRules": "[parameters('requiredNsgRules')]",
+        "privateLinkAssets": [
+          "[parameters('PrivateArtifactResourceID')]"
+        ],
         "privateDbfsAccess": "Disabled",
         "encryption": {
           "entities": {
