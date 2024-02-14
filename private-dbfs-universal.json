@@ -30,14 +30,14 @@
       "type": "string",
       "defaultValue": "[concat('dbstorage', uniqueString(resourceGroup().id, subscription().id))]",
       "metadata": {
-        "description": "DBFS stoarge account name. Do not change unless using a custom storage account name."
+        "description": "Workspace storage account name. Do not change unless using a custom storage account name."
       }
     },
     "customVirtualNetworkId": {
       "defaultValue": "The Resource ID of the workspace VNet",
       "type": "string",
       "metadata": {
-        "description": "The Resource ID of the injected vnet for the workspace"
+        "description": "The Resource ID of the injected VNet for the workspace"
       }
     },
     "customPrivateSubnetName": {
@@ -58,7 +58,7 @@
       "type": "string",
       "defaultValue": "premium",
       "metadata": {
-        "description": "The sku of the workspace."
+        "description": "The pricing tier of the workspace."
       }
     },
     "location": {
@@ -83,7 +83,7 @@
         "Disabled"
       ],
       "metadata": {
-        "description": "Enable or Disable private DBFS feature"
+        "description": "Enable or Disable firewall support for workspace default storage feature"
       }
     },
     "IsUCByDefaultEnabled": {
