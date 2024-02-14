@@ -122,13 +122,6 @@
         "description": "Indicates whether to retain or remove the AzureDatabricks outbound NSG rule - possible values are AllRules, NoAzureDatabricksRules (private link)."
       }
     },
-    "doubleEncryption" : {
-      "defaultValue": false,
-      "type": "bool",
-      "metadata": {
-        "description": "Is CMK for managed services enabled ?"
-      }
-    },
     "customerManagedKeysEnabled": {
       "defaultValue": false,
       "type": "bool",
@@ -207,9 +200,6 @@
           },
           "storageAccountName": {
             "value": "[parameters('storageAccountName')]"
-          },
-          "requireInfrastructureEncryption" : {
-            "value" : "[parameters('doubleEncryption')]"
           }
         }
       }
