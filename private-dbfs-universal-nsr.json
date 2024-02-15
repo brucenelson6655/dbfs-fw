@@ -2,17 +2,6 @@
   "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "ApiVersion": {
-      "defaultValue": "2024-02-01-preview",
-      "type": "string",
-      "allowedValues": [
-        "2024-02-01-preview",
-        "2023-04-01-preview"
-      ],
-      "metadata": {
-        "description": "Public 2024-02-01-preview or Private 2023-04-01-preview Preview APIs"
-      }
-    },
     "workspaceName": {
       "type": "string",
       "metadata": {
@@ -30,35 +19,28 @@
       "type": "string",
       "defaultValue": "[concat('dbstorage', uniqueString(resourceGroup().id, subscription().id))]",
       "metadata": {
-        "description": "DBFS stoarge account name. Do not change unless using a custom storage account name."
+        "description": "Workspace storage account name. Do not change unless using a custom storage account name."
       }
     },
-    "customVirtualNetworkId": {
-      "defaultValue": "** The Resource ID of the workspace VNet **",
+    "workspaceVnetResourceId": {
+      "defaultValue": "Required Resource ID of the workspace VNet",
       "type": "string",
       "metadata": {
-        "description": "The Resource ID of the injected vnet for the workspace"
+        "description": "The Resource ID of the injected VNet for the workspace"
       }
     },
-    "customPrivateSubnetName": {
+    "workspacePrivateSubnetName": {
       "defaultValue": "private-subnet",
       "type": "string",
       "metadata": {
         "description": "The private subnet name for the workspace"
       }
     },
-    "customPublicSubnetName": {
+    "workspacePublicSubnetName": {
       "defaultValue": "public-subnet",
       "type": "string",
       "metadata": {
         "description": "The public subnet name for the workspace"
-      }
-    },
-    "workspaceSku": {
-      "type": "string",
-      "defaultValue": "premium",
-      "metadata": {
-        "description": "The sku of the workspace."
       }
     },
     "location": {
@@ -83,14 +65,14 @@
         "Disabled"
       ],
       "metadata": {
-        "description": "Enable or Disable private DBFS feature"
+        "description": "Enable or Disable firewall support for workspace default storage feature"
       }
     },
-    "IsUCByDefaultEnabled": {
+    "workspaceCatalogEnabled": {
       "defaultValue": false,
       "type": "bool",
       "metadata": {
-        "description": "Is UC by default enabled ? Defaults to False"
+        "description": "Is UC workspace catalog enabled ?"
       }
     },
     "PrivateArtifactResourceID": {
@@ -130,6 +112,13 @@
         "description": "Indicates whether to retain or remove the AzureDatabricks outbound NSG rule - possible values are AllRules, NoAzureDatabricksRules (private link), NoAzureServiceRules (private assets)."
       }
     },
+    "storageDoubleEncryption" : {
+      "defaultValue": false,
+      "type": "bool",
+      "metadata": {
+        "description": "Is double encryption for managed storage enabled ?"
+      }
+    },
     "customerManagedKeysEnabled": {
       "defaultValue": false,
       "type": "bool",
@@ -159,9 +148,13 @@
       }
     }
   },
+  "variables": {
+    "ApiVersion": "2024-02-01-preview",
+    "workspaceSku": "premium"
+  },
   "resources": [
     {
-      "condition": "[or (and (equals(parameters('storageAccountFirewall'), 'Disabled'), parameters('IsUcByDefaultEnabled')), equals(parameters('storageAccountFirewall'), 'Enabled'))]",
+      "condition": "[or (and (equals(parameters('storageAccountFirewall'), 'Disabled'), parameters('workspaceCatalogEnabled')), equals(parameters('storageAccountFirewall'), 'Enabled'))]",
       "type": "Microsoft.Databricks/accessConnectors",
       "apiVersion": "2023-05-01",
       "name": "[parameters('accessConnectorName')]",
@@ -172,16 +165,16 @@
       "properties": {}
     },
     {
-      "condition": "[or (and (equals(parameters('storageAccountFirewall'), 'Disabled'), parameters('IsUcByDefaultEnabled'), not(parameters('customerManagedKeysEnabled'))), and (equals(parameters('storageAccountFirewall'), 'Enabled'), not(parameters('customerManagedKeysEnabled'))))]",
+      "condition": "[or (and (equals(parameters('storageAccountFirewall'), 'Disabled'), parameters('workspaceCatalogEnabled'), not(parameters('customerManagedKeysEnabled'))), and (equals(parameters('storageAccountFirewall'), 'Enabled'), not(parameters('customerManagedKeysEnabled'))))]",
       "type": "Microsoft.Databricks/workspaces",
-      "apiVersion": "[parameters('ApiVersion')]",
+      "apiVersion": "[variables('ApiVersion')]",
       "name": "[parameters('workspaceName')]",
       "location": "[parameters('location')]",
       "dependsOn": [
         "[resourceId('Microsoft.Databricks/accessConnectors', parameters('accessConnectorName'))]"
       ],
       "sku": {
-        "name": "[parameters('workspaceSku')]"
+        "name": "[variables('workspaceSku')]"
       },
       "properties": {
         "managedResourceGroupId": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('managedResourceGroupName'))]",
@@ -198,31 +191,34 @@
         "privateDbfsAccess": "[parameters('storageAccountFirewall')]",
         "parameters": {
           "customVirtualNetworkId": {
-            "value": "[parameters('customVirtualNetworkId')]"
+            "value": "[parameters('workspaceVnetResourceId')]"
           },
           "customPrivateSubnetName": {
-            "value": "[parameters('customPrivateSubnetName')]"
+            "value": "[parameters('workspacePrivateSubnetName')]"
           },
           "customPublicSubnetName": {
-            "value": "[parameters('customPublicSubnetName')]"
+            "value": "[parameters('workspacePublicSubnetName')]"
           },
           "enableNoPublicIp": {
             "value": "[parameters('disablePublicIp')]"
           },
           "storageAccountName": {
             "value": "[parameters('storageAccountName')]"
+          },
+          "requireInfrastructureEncryption" : {
+            "value" : "[parameters('storageDoubleEncryption')]"
           }
         }
       }
     },
     {
-      "condition": "[and (equals(parameters('storageAccountFirewall'), 'Disabled'), not(parameters('IsUcByDefaultEnabled')), not(parameters('customerManagedKeysEnabled'))) ]",
+      "condition": "[and (equals(parameters('storageAccountFirewall'), 'Disabled'), not(parameters('workspaceCatalogEnabled')), not(parameters('customerManagedKeysEnabled'))) ]",
       "type": "Microsoft.Databricks/workspaces",
-      "apiVersion": "[parameters('ApiVersion')]",
+      "apiVersion": "[variables('ApiVersion')]",
       "name": "[parameters('workspaceName')]",
       "location": "[parameters('location')]",
       "sku": {
-        "name": "[parameters('workspaceSku')]"
+        "name": "[variables('workspaceSku')]"
       },
       "properties": {
         "managedResourceGroupId": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('managedResourceGroupName'))]",
@@ -234,34 +230,37 @@
         "privateDbfsAccess": "Disabled",
         "parameters": {
           "customVirtualNetworkId": {
-            "value": "[parameters('customVirtualNetworkId')]"
+            "value": "[parameters('workspaceVnetResourceId')]"
           },
           "customPrivateSubnetName": {
-            "value": "[parameters('customPrivateSubnetName')]"
+            "value": "[parameters('workspacePrivateSubnetName')]"
           },
           "customPublicSubnetName": {
-            "value": "[parameters('customPublicSubnetName')]"
+            "value": "[parameters('workspacePublicSubnetName')]"
           },
           "enableNoPublicIp": {
             "value": "[parameters('disablePublicIp')]"
           },
           "storageAccountName": {
             "value": "[parameters('storageAccountName')]"
+          },
+          "requireInfrastructureEncryption" : {
+            "value" : "[parameters('storageDoubleEncryption')]"
           }
         }
       }
     },
     {
-      "condition": "[or ( and ( equals(parameters('storageAccountFirewall'), 'Disabled'), parameters('IsUcByDefaultEnabled'), parameters('customerManagedKeysEnabled')), and (equals(parameters('storageAccountFirewall'), 'Enabled'), parameters('customerManagedKeysEnabled')))]",
+      "condition": "[or ( and ( equals(parameters('storageAccountFirewall'), 'Disabled'), parameters('workspaceCatalogEnabled'), parameters('customerManagedKeysEnabled')), and (equals(parameters('storageAccountFirewall'), 'Enabled'), parameters('customerManagedKeysEnabled')))]",
       "type": "Microsoft.Databricks/workspaces",
-      "apiVersion": "[parameters('ApiVersion')]",
+      "apiVersion": "[variables('ApiVersion')]",
       "name": "[parameters('workspaceName')]",
       "location": "[parameters('location')]",
       "dependsOn": [
         "[resourceId('Microsoft.Databricks/accessConnectors', parameters('accessConnectorName'))]"
       ],
       "sku": {
-        "name": "[parameters('workspaceSku')]"
+        "name": "[variables('workspaceSku')]"
       },
       "properties": {
         "managedResourceGroupId": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('managedResourceGroupName'))]",
@@ -289,31 +288,34 @@
         "privateDbfsAccess": "[parameters('storageAccountFirewall')]",
         "parameters": {
           "customVirtualNetworkId": {
-            "value": "[parameters('customVirtualNetworkId')]"
+            "value": "[parameters('workspaceVnetResourceId')]"
           },
           "customPrivateSubnetName": {
-            "value": "[parameters('customPrivateSubnetName')]"
+            "value": "[parameters('workspacePrivateSubnetName')]"
           },
           "customPublicSubnetName": {
-            "value": "[parameters('customPublicSubnetName')]"
+            "value": "[parameters('workspacePublicSubnetName')]"
           },
           "enableNoPublicIp": {
             "value": "[parameters('disablePublicIp')]"
           },
           "storageAccountName": {
             "value": "[parameters('storageAccountName')]"
+          },
+          "requireInfrastructureEncryption" : {
+            "value" : "[parameters('storageDoubleEncryption')]"
           }
         }
       }
     },
     {
-      "condition": "[and (equals(parameters('storageAccountFirewall'), 'Disabled'), not(parameters('IsUcByDefaultEnabled')), parameters('customerManagedKeysEnabled'))]",
+      "condition": "[and (equals(parameters('storageAccountFirewall'), 'Disabled'), not(parameters('workspaceCatalogEnabled')), parameters('customerManagedKeysEnabled'))]",
       "type": "Microsoft.Databricks/workspaces",
-      "apiVersion": "[parameters('ApiVersion')]",
+      "apiVersion": "[variables('ApiVersion')]",
       "name": "[parameters('workspaceName')]",
       "location": "[parameters('location')]",
       "sku": {
-        "name": "[parameters('workspaceSku')]"
+        "name": "[variables('workspaceSku')]"
       },
       "properties": {
         "managedResourceGroupId": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('managedResourceGroupName'))]",
@@ -337,21 +339,23 @@
         },
         "parameters": {
           "customVirtualNetworkId": {
-            "value": "[parameters('customVirtualNetworkId')]"
+            "value": "[parameters('workspaceVnetResourceId')]"
           },
           "customPrivateSubnetName": {
-            "value": "[parameters('customPrivateSubnetName')]"
+            "value": "[parameters('workspacePrivateSubnetName')]"
           },
           "customPublicSubnetName": {
-            "value": "[parameters('customPublicSubnetName')]"
+            "value": "[parameters('workspacePublicSubnetName')]"
           },
           "enableNoPublicIp": {
             "value": "[parameters('disablePublicIp')]"
           },
           "storageAccountName": {
             "value": "[parameters('storageAccountName')]"
+          },
+          "requireInfrastructureEncryption" : {
+            "value" : "[parameters('storageDoubleEncryption')]"
           }
-
         }
       }
     }
