@@ -3,138 +3,157 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "workspaceName": {
-      "type": "string",
+      "type": "String",
       "metadata": {
         "description": "The name of the Azure Databricks workspace to update."
       }
     },
+    "location": {
+      "defaultValue": "[resourceGroup().location]",
+      "type": "String",
+      "metadata": {
+        "description": "Location for all resources."
+      }
+    },
     "managedResourceGroupName": {
-      "type": "string",
       "defaultValue": "[format('databricks-rg-{0}-{1}', parameters('workspaceName'), uniqueString(parameters('workspaceName'), resourceGroup().id))]",
+      "type": "String",
       "metadata": {
         "description": "The Managed Resource GroupName of the workspace. Do not change unless using a custom managed resource group name."
       }
     },
     "storageAccountName": {
-      "type": "string",
       "defaultValue": "[concat('dbstorage', uniqueString(resourceGroup().id, subscription().id))]",
+      "type": "String",
       "metadata": {
         "description": "Workspace storage account name. Do not change unless using a custom storage account name."
       }
     },
     "workspaceVnetResourceId": {
       "defaultValue": "Required Resource ID of the workspace VNet",
-      "type": "string",
+      "type": "String",
       "metadata": {
         "description": "The Resource ID of the injected VNet for the workspace"
       }
     },
     "workspacePrivateSubnetName": {
       "defaultValue": "private-subnet",
-      "type": "string",
+      "type": "String",
       "metadata": {
         "description": "The private subnet name for the workspace"
       }
     },
     "workspacePublicSubnetName": {
       "defaultValue": "public-subnet",
-      "type": "string",
+      "type": "String",
       "metadata": {
         "description": "The public subnet name for the workspace"
       }
     },
-    "location": {
-      "defaultValue": "[resourceGroup().location]",
-      "type": "string",
-      "metadata": {
-        "description": "Location for all resources."
-      }
-    },
     "accessConnectorName": {
       "defaultValue": "[format('{0}-access-connector', parameters('workspaceName'))]",
-      "type": "string",
+      "type": "String",
       "metadata": {
         "description": "The access connector to create for the workspace"
       }
     },
+    "ManagedIdenityType": {
+      "defaultValue": "SystemAssigned",
+      "allowedValues": [
+        "SystemAssigned",
+        "UserAssigned",
+        "SystemAssigned,UserAssigned"
+      ],
+      "type": "String",
+      "metadata": {
+        "description": "Access Connector Managed Idenity Type"
+      }
+    },
+    "userManagedIdentityResourceId": {
+      "defaultValue": "Required For User Mananged Idenity",
+      "type": "String",
+      "metadata": {
+        "description": "The Resource Id of the User Managed Identity"
+      }
+    },
     "storageAccountFirewall": {
       "defaultValue": "Enabled",
-      "type": "string",
       "allowedValues": [
         "Enabled",
         "Disabled"
       ],
+      "type": "String",
       "metadata": {
         "description": "Enable or Disable firewall support for workspace default storage feature"
       }
     },
     "workspaceCatalogEnabled": {
       "defaultValue": false,
-      "type": "bool",
+      "type": "Bool",
       "metadata": {
         "description": "Is UC workspace catalog enabled ?"
       }
     },
     "disablePublicIp": {
-      "type": "bool",
       "defaultValue": true,
+      "type": "Bool",
       "metadata": {
         "description": "Specifies whether to deploy Azure Databricks workspace with secure cluster connectivity (SCC) enabled or not (No Public IP)."
       }
     },
     "publicNetworkAccess": {
-      "type": "string",
       "defaultValue": "Enabled",
       "allowedValues": [
         "Enabled",
         "Disabled"
       ],
+      "type": "String",
       "metadata": {
         "description": "Indicates whether public network access is allowed to the workspace with private endpoint - possible values are Enabled or Disabled."
       }
     },
     "requiredNsgRules": {
-      "type": "string",
       "defaultValue": "AllRules",
       "allowedValues": [
         "AllRules",
         "NoAzureDatabricksRules"
       ],
+      "type": "String",
       "metadata": {
         "description": "Indicates whether to retain or remove the AzureDatabricks outbound NSG rule - possible values are AllRules, NoAzureDatabricksRules (private link)."
       }
     },
-    "storageDoubleEncryption" : {
+    "storageDoubleEncryption": {
       "defaultValue": false,
-      "type": "bool",
+      "type": "Bool",
       "metadata": {
         "description": "Is double encryption for managed storage enabled ?"
       }
     },
     "customerManagedKeysEnabled": {
       "defaultValue": false,
-      "type": "bool",
+      "type": "Bool",
       "metadata": {
         "description": "Is CMK for managed services enabled ?"
       }
     },
     "keyVaultUri": {
-      "type": "string",
       "defaultValue": "Required for CMK for managed services only",
+      "type": "String",
       "metadata": {
         "description": "The Key Vault URI"
       }
     },
     "keyName": {
-      "type": "string",
       "defaultValue": "Required for CMK for managed services only",
+      "type": "String",
       "metadata": {
         "description": "The Key Name"
       }
     },
     "keyVersion": {
-      "type": "string",
       "defaultValue": "Required for CMK for managed services only",
+      "type": "String",
       "metadata": {
         "description": "The Key Version"
       }
@@ -142,22 +161,37 @@
   },
   "variables": {
     "ApiVersion": "2024-02-01-preview",
-    "workspaceSku": "premium"
+    "workspaceSku": "premium",
+    "systemAssignedObject": {
+      "type": "[parameters('ManagedIdenityType')]"
+    },
+    "userAssignedObject": {
+      "type": "[parameters('ManagedIdenityType')]",
+      "userAssignedIdentities": {
+        "[parameters('userManagedIdentityResourceId')]": {}
+      }
+    },
+    "ConnectorSystemAssigned": {
+      "id": "[resourceId('Microsoft.Databricks/accessConnectors', parameters('accessConnectorName'))]",
+      "identityType": "[parameters('ManagedIdenityType')]"
+    },
+    "connectorUserAssigned": {
+      "id": "[resourceId('Microsoft.Databricks/accessConnectors', parameters('accessConnectorName'))]",
+      "identityType": "[parameters('ManagedIdenityType')]",
+      "userAssignedIdentityId": "[parameters('userManagedIdentityResourceId')]"
+    }
   },
   "resources": [
     {
-      "condition": "[or (and (equals(parameters('storageAccountFirewall'), 'Disabled'), parameters('workspaceCatalogEnabled')), equals(parameters('storageAccountFirewall'), 'Enabled'))]",
       "type": "Microsoft.Databricks/accessConnectors",
       "apiVersion": "2023-05-01",
       "name": "[parameters('accessConnectorName')]",
       "location": "[parameters('location')]",
-      "identity": {
-        "type": "SystemAssigned"
-      },
-      "properties": {}
+      "identity": "[if(equals(parameters('ManagedIdenityType'),'SystemAssigned'),variables('systemAssignedObject'),variables('userAssignedObject'))]",
+      "properties": {},
+      "condition": "[or (and (equals(parameters('storageAccountFirewall'), 'Disabled'), parameters('workspaceCatalogEnabled')), equals(parameters('storageAccountFirewall'), 'Enabled'))]"
     },
     {
-      "condition": "[or (and (equals(parameters('storageAccountFirewall'), 'Disabled'), parameters('workspaceCatalogEnabled'), not(parameters('customerManagedKeysEnabled'))), and (equals(parameters('storageAccountFirewall'), 'Enabled'), not(parameters('customerManagedKeysEnabled'))))]",
       "type": "Microsoft.Databricks/workspaces",
       "apiVersion": "[variables('ApiVersion')]",
       "name": "[parameters('workspaceName')]",
@@ -172,11 +206,7 @@
         "managedResourceGroupId": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('managedResourceGroupName'))]",
         "publicNetworkAccess": "[parameters('publicNetworkAccess')]",
         "requiredNsgRules": "[parameters('requiredNsgRules')]",
-        "accessConnector": {
-          "id": "[resourceId('Microsoft.Databricks/accessConnectors', parameters('accessConnectorName'))]",
-          "identityType": "SystemAssigned"
-
-        },
+        "accessConnector": "[if(equals(parameters('ManagedIdenityType'),'SystemAssigned'),variables('ConnectorSystemAssigned'),variables('connectorUserAssigned'))]",
         "privateDbfsAccess": "[parameters('storageAccountFirewall')]",
         "parameters": {
           "customVirtualNetworkId": {
@@ -194,14 +224,14 @@
           "storageAccountName": {
             "value": "[parameters('storageAccountName')]"
           },
-          "requireInfrastructureEncryption" : {
-            "value" : "[parameters('storageDoubleEncryption')]"
+          "requireInfrastructureEncryption": {
+            "value": "[parameters('storageDoubleEncryption')]"
           }
         }
-      }
+      },
+      "condition": "[or (and (equals(parameters('storageAccountFirewall'), 'Disabled'), parameters('workspaceCatalogEnabled'), not(parameters('customerManagedKeysEnabled'))), and (equals(parameters('storageAccountFirewall'), 'Enabled'), not(parameters('customerManagedKeysEnabled'))))]"
     },
     {
-      "condition": "[and (equals(parameters('storageAccountFirewall'), 'Disabled'), not(parameters('workspaceCatalogEnabled')), not(parameters('customerManagedKeysEnabled'))) ]",
       "type": "Microsoft.Databricks/workspaces",
       "apiVersion": "[variables('ApiVersion')]",
       "name": "[parameters('workspaceName')]",
@@ -230,14 +260,14 @@
           "storageAccountName": {
             "value": "[parameters('storageAccountName')]"
           },
-          "requireInfrastructureEncryption" : {
-            "value" : "[parameters('storageDoubleEncryption')]"
+          "requireInfrastructureEncryption": {
+            "value": "[parameters('storageDoubleEncryption')]"
           }
         }
-      }
+      },
+      "condition": "[and (equals(parameters('storageAccountFirewall'), 'Disabled'), not(parameters('workspaceCatalogEnabled')), not(parameters('customerManagedKeysEnabled'))) ]"
     },
     {
-      "condition": "[or ( and ( equals(parameters('storageAccountFirewall'), 'Disabled'), parameters('workspaceCatalogEnabled'), parameters('customerManagedKeysEnabled')), and (equals(parameters('storageAccountFirewall'), 'Enabled'), parameters('customerManagedKeysEnabled')))]",
       "type": "Microsoft.Databricks/workspaces",
       "apiVersion": "[variables('ApiVersion')]",
       "name": "[parameters('workspaceName')]",
@@ -252,10 +282,7 @@
         "managedResourceGroupId": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('managedResourceGroupName'))]",
         "publicNetworkAccess": "[parameters('publicNetworkAccess')]",
         "requiredNsgRules": "[parameters('requiredNsgRules')]",
-        "accessConnector": {
-          "id": "[resourceId('Microsoft.Databricks/accessConnectors', parameters('accessConnectorName'))]",
-          "identityType": "SystemAssigned"
-        },
+        "accessConnector": "[if(equals(parameters('ManagedIdenityType'),'SystemAssigned'),variables('ConnectorSystemAssigned'),variables('connectorUserAssigned'))]",
         "encryption": {
           "entities": {
             "managedServices": {
@@ -285,14 +312,14 @@
           "storageAccountName": {
             "value": "[parameters('storageAccountName')]"
           },
-          "requireInfrastructureEncryption" : {
-            "value" : "[parameters('storageDoubleEncryption')]"
+          "requireInfrastructureEncryption": {
+            "value": "[parameters('storageDoubleEncryption')]"
           }
         }
-      }
+      },
+      "condition": "[or ( and ( equals(parameters('storageAccountFirewall'), 'Disabled'), parameters('workspaceCatalogEnabled'), parameters('customerManagedKeysEnabled')), and (equals(parameters('storageAccountFirewall'), 'Enabled'), parameters('customerManagedKeysEnabled')))]"
     },
     {
-      "condition": "[and (equals(parameters('storageAccountFirewall'), 'Disabled'), not(parameters('workspaceCatalogEnabled')), parameters('customerManagedKeysEnabled'))]",
       "type": "Microsoft.Databricks/workspaces",
       "apiVersion": "[variables('ApiVersion')]",
       "name": "[parameters('workspaceName')]",
@@ -333,11 +360,12 @@
           "storageAccountName": {
             "value": "[parameters('storageAccountName')]"
           },
-          "requireInfrastructureEncryption" : {
-            "value" : "[parameters('storageDoubleEncryption')]"
+          "requireInfrastructureEncryption": {
+            "value": "[parameters('storageDoubleEncryption')]"
           }
         }
-      }
+      },
+      "condition": "[and (equals(parameters('storageAccountFirewall'), 'Disabled'), not(parameters('workspaceCatalogEnabled')), parameters('customerManagedKeysEnabled'))]"
     }
   ]
 }
