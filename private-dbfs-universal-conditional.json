@@ -137,25 +137,69 @@
         "description": "Is CMK for managed services enabled ?"
       }
     },
-    "keyVaultUri": {
+    "CustomerManagedKeyType": {
+      "defaultValue": "ManagedServicesCMK",
+      "allowedValues": [
+        "ManagedServicesCMK",
+        "ManagedDisksCMK",
+        "BothCMK"
+      ],
+      "type": "String",
+      "metadata": {
+        "description": "Selects the CMK types for this workspace, Managed Services and/or Disks, Workspace storage account is not enabled here"
+      }
+    },
+    "ManagedSrvcKeyVaultUri": {
       "defaultValue": "Required for CMK for managed services only",
       "type": "String",
       "metadata": {
         "description": "The Key Vault URI"
       }
     },
-    "keyName": {
+    "ManagedSrvcKeyName": {
       "defaultValue": "Required for CMK for managed services only",
       "type": "String",
       "metadata": {
         "description": "The Key Name"
       }
     },
-    "keyVersion": {
+    "ManagedSrvcKeyVersion": {
       "defaultValue": "Required for CMK for managed services only",
       "type": "String",
       "metadata": {
         "description": "The Key Version"
+      }
+    },
+    "ManagedDiskKeyVaultUri": {
+      "defaultValue": "Required for CMK for managed disks only",
+      "type": "String",
+      "metadata": {
+        "description": "The Key Vault URI"
+      }
+    },
+    "ManagedDiskKeyName": {
+      "defaultValue": "Required for CMK for managed disks only",
+      "type": "String",
+      "metadata": {
+        "description": "The Key Name"
+      }
+    },
+    "ManagedDiskKeyVersion": {
+      "defaultValue": "Required for CMK for managed disks only",
+      "type": "String",
+      "metadata": {
+        "description": "The Key Version"
+      }
+    },
+    "enableAutoRotation": {
+      "type": "bool",
+      "defaultValue": false,
+      "allowedValues": [
+        true,
+        false
+      ],
+      "metadata": {
+        "description": "Whether managed disk will pick up new key version automatically."
       }
     }
   },
@@ -179,6 +223,46 @@
       "id": "[resourceId('Microsoft.Databricks/accessConnectors', parameters('accessConnectorName'))]",
       "identityType": "[parameters('ManagedIdenityType')]",
       "userAssignedIdentityId": "[parameters('userManagedIdentityResourceId')]"
+    },
+    "ManagedServicesCMK": {
+      "managedServices": {
+        "keySource": "Microsoft.Keyvault",
+        "keyVaultProperties": {
+          "keyVaultUri": "[parameters('ManagedSrvcKeyVaultUri')]",
+          "keyName": "[parameters('ManagedSrvcKeyName')]",
+          "keyVersion": "[parameters('ManagedSrvcKeyVersion')]"
+        }
+      }
+    },
+    "ManagedDisksCMK": {
+      "managedDisk": {
+        "keySource": "Microsoft.Keyvault",
+        "keyVaultProperties": {
+          "keyVaultUri": "[parameters('ManagedDiskKeyVaultUri')]",
+          "keyName": "[parameters('ManagedDiskKeyName')]",
+          "keyVersion": "[parameters('ManagedDiskKeyVersion')]"
+        },
+        "rotationToLatestKeyVersionEnabled": "[parameters('enableAutoRotation')]"
+      }
+    },
+    "BothCMK": {
+      "managedServices": {
+        "keySource": "Microsoft.Keyvault",
+        "keyVaultProperties": {
+          "keyVaultUri": "[parameters('ManagedSrvcKeyVaultUri')]",
+          "keyName": "[parameters('ManagedSrvcKeyName')]",
+          "keyVersion": "[parameters('ManagedSrvcKeyVersion')]"
+        }
+      },
+      "managedDisk": {
+        "keySource": "Microsoft.Keyvault",
+        "keyVaultProperties": {
+          "keyVaultUri": "[parameters('ManagedDiskKeyVaultUri')]",
+          "keyName": "[parameters('ManagedDiskKeyName')]",
+          "keyVersion": "[parameters('ManagedDiskKeyVersion')]"
+        },
+        "rotationToLatestKeyVersionEnabled": "[parameters('enableAutoRotation')]"
+      }
     }
   },
   "resources": [
@@ -284,16 +368,7 @@
         "requiredNsgRules": "[parameters('requiredNsgRules')]",
         "accessConnector": "[if(equals(parameters('ManagedIdenityType'),'SystemAssigned'),variables('ConnectorSystemAssigned'),variables('connectorUserAssigned'))]",
         "encryption": {
-          "entities": {
-            "managedServices": {
-              "keySource": "Microsoft.Keyvault",
-              "keyVaultProperties": {
-                "keyVaultUri": "[parameters('keyVaultUri')]",
-                "keyName": "[parameters('keyName')]",
-                "keyVersion": "[parameters('keyVersion')]"
-              }
-            }
-          }
+          "entities": "[variables(parameters('CustomerManagedKeyType'))]"
         },
         "privateDbfsAccess": "[parameters('storageAccountFirewall')]",
         "parameters": {
@@ -333,16 +408,7 @@
         "requiredNsgRules": "[parameters('requiredNsgRules')]",
         "privateDbfsAccess": "Disabled",
         "encryption": {
-          "entities": {
-            "managedServices": {
-              "keySource": "Microsoft.Keyvault",
-              "keyVaultProperties": {
-                "keyVaultUri": "[parameters('keyVaultUri')]",
-                "keyName": "[parameters('keyName')]",
-                "keyVersion": "[parameters('keyVersion')]"
-              }
-            }
-          }
+          "entities": "[variables(parameters('CustomerManagedKeyType'))]"
         },
         "parameters": {
           "customVirtualNetworkId": {
