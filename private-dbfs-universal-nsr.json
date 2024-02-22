@@ -199,7 +199,7 @@
         "description": "The Key Version"
       }
     },
-    "enableAutoRotation": {
+    "ManagedDiskAutoRotation": {
       "type": "bool",
       "defaultValue": false,
       "allowedValues": [
@@ -250,7 +250,7 @@
           "keyName": "[parameters('ManagedDiskKeyName')]",
           "keyVersion": "[parameters('ManagedDiskKeyVersion')]"
         },
-        "rotationToLatestKeyVersionEnabled": "[parameters('enableAutoRotation')]"
+        "rotationToLatestKeyVersionEnabled": "[parameters('ManagedDiskAutoRotation')]"
       }
     },
     "BothCMK": {
@@ -269,7 +269,7 @@
           "keyName": "[parameters('ManagedDiskKeyName')]",
           "keyVersion": "[parameters('ManagedDiskKeyVersion')]"
         },
-        "rotationToLatestKeyVersionEnabled": "[parameters('enableAutoRotation')]"
+        "rotationToLatestKeyVersionEnabled": "[parameters('ManagedDiskAutoRotation')]"
       }
     }
   },
