@@ -291,7 +291,7 @@
         "publicNetworkAccess": "[parameters('publicNetworkAccess')]",
         "requiredNsgRules": "[parameters('requiredNsgRules')]",
         "accessConnector": "[if(equals(parameters('ManagedIdenityType'),'SystemAssigned'),variables('ConnectorSystemAssigned'),variables('connectorUserAssigned'))]",
-        "privateDbfsAccess": "[parameters('storageAccountFirewall')]",
+        "defaultStorageFirewall": "[parameters('storageAccountFirewall')]",
         "parameters": {
           "customVirtualNetworkId": {
             "value": "[parameters('workspaceVnetResourceId')]"
@@ -327,7 +327,7 @@
         "managedResourceGroupId": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('managedResourceGroupName'))]",
         "publicNetworkAccess": "[parameters('publicNetworkAccess')]",
         "requiredNsgRules": "[parameters('requiredNsgRules')]",
-        "privateDbfsAccess": "Disabled",
+        "defaultStorageFirewall": "Disabled",
         "parameters": {
           "customVirtualNetworkId": {
             "value": "[parameters('workspaceVnetResourceId')]"
@@ -370,7 +370,7 @@
         "encryption": {
           "entities": "[variables(parameters('CustomerManagedKeyType'))]"
         },
-        "privateDbfsAccess": "[parameters('storageAccountFirewall')]",
+        "defaultStorageFirewall": "[parameters('storageAccountFirewall')]",
         "parameters": {
           "customVirtualNetworkId": {
             "value": "[parameters('workspaceVnetResourceId')]"
@@ -406,7 +406,7 @@
         "managedResourceGroupId": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('managedResourceGroupName'))]",
         "publicNetworkAccess": "[parameters('publicNetworkAccess')]",
         "requiredNsgRules": "[parameters('requiredNsgRules')]",
-        "privateDbfsAccess": "Disabled",
+        "defaultStorageFirewall": "Disabled",
         "encryption": {
           "entities": "[variables(parameters('CustomerManagedKeyType'))]"
         },

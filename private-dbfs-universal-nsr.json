@@ -302,7 +302,7 @@
           "[parameters('PrivateArtifactResourceID')]"
         ],
         "accessConnector": "[if(equals(parameters('ManagedIdenityType'),'SystemAssigned'),variables('ConnectorSystemAssigned'),variables('connectorUserAssigned'))]",
-        "privateDbfsAccess": "[parameters('storageAccountFirewall')]",
+        "defaultStorageFirewall": "[parameters('storageAccountFirewall')]",
         "parameters": {
           "customVirtualNetworkId": {
             "value": "[parameters('workspaceVnetResourceId')]"
@@ -341,7 +341,7 @@
         "privateLinkAssets": [
           "[parameters('PrivateArtifactResourceID')]"
         ],
-        "privateDbfsAccess": "Disabled",
+        "defaultStorageFirewall": "Disabled",
         "parameters": {
           "customVirtualNetworkId": {
             "value": "[parameters('workspaceVnetResourceId')]"
@@ -387,7 +387,7 @@
         "encryption": {
           "entities": "[variables(parameters('CustomerManagedKeyType'))]"
         },
-        "privateDbfsAccess": "[parameters('storageAccountFirewall')]",
+        "defaultStorageFirewall": "[parameters('storageAccountFirewall')]",
         "parameters": {
           "customVirtualNetworkId": {
             "value": "[parameters('workspaceVnetResourceId')]"
@@ -426,7 +426,7 @@
         "privateLinkAssets": [
           "[parameters('PrivateArtifactResourceID')]"
         ],
-        "privateDbfsAccess": "Disabled",
+        "defaultStorageFirewall": "Disabled",
         "encryption": {
           "entities": "[variables(parameters('CustomerManagedKeyType'))]"
         },
