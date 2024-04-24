@@ -404,7 +404,7 @@ Copy the following ARM template to enable or disable <FeatureName>
         "description": "The access connector to create for the workspace"
       }
     },
-    "ManagedIdenityType": {
+    "ManagedIdentityType": {
       "defaultValue": "SystemAssigned",
       "allowedValues": [
         "SystemAssigned",
@@ -413,11 +413,11 @@ Copy the following ARM template to enable or disable <FeatureName>
       ],
       "type": "String",
       "metadata": {
-        "description": "Access Connector Managed Idenity Type"
+        "description": "Access Connector Managed Identity Type"
       }
     },
     "userManagedIdentityResourceId": {
-      "defaultValue": "Required For User Mananged Idenity",
+      "defaultValue": "Required For User Mananged Identity",
       "type": "String",
       "metadata": {
         "description": "The Resource Id of the User Managed Identity"
@@ -554,21 +554,21 @@ Copy the following ARM template to enable or disable <FeatureName>
     "ApiVersion": "2024-02-01-preview",
     "workspaceSku": "premium",
     "systemAssignedObject": {
-      "type": "[parameters('ManagedIdenityType')]"
+      "type": "[parameters('ManagedIdentityType')]"
     },
     "userAssignedObject": {
-      "type": "[parameters('ManagedIdenityType')]",
+      "type": "[parameters('ManagedIdentityType')]",
       "userAssignedIdentities": {
         "[parameters('userManagedIdentityResourceId')]": {}
       }
     },
     "ConnectorSystemAssigned": {
       "id": "[resourceId('Microsoft.Databricks/accessConnectors', parameters('accessConnectorName'))]",
-      "identityType": "[parameters('ManagedIdenityType')]"
+      "identityType": "[parameters('ManagedIdentityType')]"
     },
     "connectorUserAssigned": {
       "id": "[resourceId('Microsoft.Databricks/accessConnectors', parameters('accessConnectorName'))]",
-      "identityType": "[parameters('ManagedIdenityType')]",
+      "identityType": "[parameters('ManagedIdentityType')]",
       "userAssignedIdentityId": "[parameters('userManagedIdentityResourceId')]"
     },
     "ManagedServicesCMK": {
@@ -618,7 +618,7 @@ Copy the following ARM template to enable or disable <FeatureName>
       "apiVersion": "2023-05-01",
       "name": "[parameters('accessConnectorName')]",
       "location": "[parameters('location')]",
-      "identity": "[if(equals(parameters('ManagedIdenityType'),'SystemAssigned'),variables('systemAssignedObject'),variables('userAssignedObject'))]",
+      "identity": "[if(equals(parameters('ManagedIdentityType'),'SystemAssigned'),variables('systemAssignedObject'),variables('userAssignedObject'))]",
       "properties": {},
       "condition": "[or (and (equals(parameters('storageAccountFirewall'), 'Disabled'), parameters('workspaceCatalogEnabled')), equals(parameters('storageAccountFirewall'), 'Enabled'))]"
     },
@@ -637,7 +637,7 @@ Copy the following ARM template to enable or disable <FeatureName>
         "managedResourceGroupId": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('managedResourceGroupName'))]",
         "publicNetworkAccess": "[parameters('publicNetworkAccess')]",
         "requiredNsgRules": "[parameters('requiredNsgRules')]",
-        "accessConnector": "[if(equals(parameters('ManagedIdenityType'),'SystemAssigned'),variables('ConnectorSystemAssigned'),variables('connectorUserAssigned'))]",
+        "accessConnector": "[if(equals(parameters('ManagedIdentityType'),'SystemAssigned'),variables('ConnectorSystemAssigned'),variables('connectorUserAssigned'))]",
         "privateDbfsAccess": "[parameters('storageAccountFirewall')]",
         "parameters": {
           "customVirtualNetworkId": {
@@ -713,7 +713,7 @@ Copy the following ARM template to enable or disable <FeatureName>
         "managedResourceGroupId": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('managedResourceGroupName'))]",
         "publicNetworkAccess": "[parameters('publicNetworkAccess')]",
         "requiredNsgRules": "[parameters('requiredNsgRules')]",
-        "accessConnector": "[if(equals(parameters('ManagedIdenityType'),'SystemAssigned'),variables('ConnectorSystemAssigned'),variables('connectorUserAssigned'))]",
+        "accessConnector": "[if(equals(parameters('ManagedIdentityType'),'SystemAssigned'),variables('ConnectorSystemAssigned'),variables('connectorUserAssigned'))]",
         "encryption": {
           "entities": "[variables(parameters('CustomerManagedKeyType'))]"
         },
@@ -870,7 +870,7 @@ https://github.com/brucenelson6655/dbfs-fw/blob/main/cusom-vnet.json
         "description": "The access connector to create for the workspace"
       }
     },
-    "ManagedIdenityType": {
+    "ManagedIdentityType": {
       "defaultValue": "SystemAssigned",
       "allowedValues": [
         "SystemAssigned",
@@ -879,11 +879,11 @@ https://github.com/brucenelson6655/dbfs-fw/blob/main/cusom-vnet.json
       ],
       "type": "String",
       "metadata": {
-        "description": "Access Connector Managed Idenity Type"
+        "description": "Access Connector Managed Identity Type"
       }
     },
     "userManagedIdentityResourceId": {
-      "defaultValue": "Required For User Mananged Idenity",
+      "defaultValue": "Required For User Mananged Identity",
       "type": "String",
       "metadata": {
         "description": "The Resource Id of the User Managed Identity"
@@ -993,21 +993,21 @@ https://github.com/brucenelson6655/dbfs-fw/blob/main/cusom-vnet.json
     "ApiVersion": "2024-02-01-preview",
     "workspaceSku": "premium",
     "systemAssignedObject": {
-      "type": "[parameters('ManagedIdenityType')]"
+      "type": "[parameters('ManagedIdentityType')]"
     },
     "userAssignedObject": {
-      "type": "[parameters('ManagedIdenityType')]",
+      "type": "[parameters('ManagedIdentityType')]",
       "userAssignedIdentities": {
         "[parameters('userManagedIdentityResourceId')]": {}
       }
     },
     "ConnectorSystemAssigned": {
       "id": "[resourceId('Microsoft.Databricks/accessConnectors', parameters('accessConnectorName'))]",
-      "identityType": "[parameters('ManagedIdenityType')]"
+      "identityType": "[parameters('ManagedIdentityType')]"
     },
     "connectorUserAssigned": {
       "id": "[resourceId('Microsoft.Databricks/accessConnectors', parameters('accessConnectorName'))]",
-      "identityType": "[parameters('ManagedIdenityType')]",
+      "identityType": "[parameters('ManagedIdentityType')]",
       "userAssignedIdentityId": "[parameters('userManagedIdentityResourceId')]"
     },
     "managedSrvcFirst" : "[split(parameters('ManagedSrvcKeyVaultKeyId'),'/keys/')]",
@@ -1061,7 +1061,7 @@ https://github.com/brucenelson6655/dbfs-fw/blob/main/cusom-vnet.json
       "apiVersion": "2023-05-01",
       "name": "[parameters('accessConnectorName')]",
       "location": "[parameters('location')]",
-      "identity": "[if(equals(parameters('ManagedIdenityType'),'SystemAssigned'),variables('systemAssignedObject'),variables('userAssignedObject'))]",
+      "identity": "[if(equals(parameters('ManagedIdentityType'),'SystemAssigned'),variables('systemAssignedObject'),variables('userAssignedObject'))]",
       "properties": {},
       "condition": "[or (and (equals(parameters('storageAccountFirewall'), 'Disabled'), parameters('workspaceCatalogEnabled')), equals(parameters('storageAccountFirewall'), 'Enabled'))]"
     },
@@ -1080,7 +1080,7 @@ https://github.com/brucenelson6655/dbfs-fw/blob/main/cusom-vnet.json
         "managedResourceGroupId": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('managedResourceGroupName'))]",
         "publicNetworkAccess": "[parameters('publicNetworkAccess')]",
         "requiredNsgRules": "[parameters('requiredNsgRules')]",
-        "accessConnector": "[if(equals(parameters('ManagedIdenityType'),'SystemAssigned'),variables('ConnectorSystemAssigned'),variables('connectorUserAssigned'))]",
+        "accessConnector": "[if(equals(parameters('ManagedIdentityType'),'SystemAssigned'),variables('ConnectorSystemAssigned'),variables('connectorUserAssigned'))]",
         "defaultStorageFirewall": "[parameters('storageAccountFirewall')]",
         "parameters": {
           "customVirtualNetworkId": {
@@ -1156,7 +1156,7 @@ https://github.com/brucenelson6655/dbfs-fw/blob/main/cusom-vnet.json
         "managedResourceGroupId": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('managedResourceGroupName'))]",
         "publicNetworkAccess": "[parameters('publicNetworkAccess')]",
         "requiredNsgRules": "[parameters('requiredNsgRules')]",
-        "accessConnector": "[if(equals(parameters('ManagedIdenityType'),'SystemAssigned'),variables('ConnectorSystemAssigned'),variables('connectorUserAssigned'))]",
+        "accessConnector": "[if(equals(parameters('ManagedIdentityType'),'SystemAssigned'),variables('ConnectorSystemAssigned'),variables('connectorUserAssigned'))]",
         "encryption": {
           "entities": "[variables(parameters('CustomerManagedKeyType'))]"
         },

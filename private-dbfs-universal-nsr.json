@@ -57,7 +57,7 @@
         "description": "The access connector to create for the workspace"
       }
     },
-    "ManagedIdenityType": {
+    "ManagedIdentityType": {
       "defaultValue": "SystemAssigned",
       "allowedValues": [
         "SystemAssigned",
@@ -66,11 +66,11 @@
       ],
       "type": "String",
       "metadata": {
-        "description": "Access Connector Managed Idenity Type"
+        "description": "Access Connector Managed Identity Type"
       }
     },
     "userManagedIdentityResourceId": {
-      "defaultValue": "Required For User Mananged Idenity",
+      "defaultValue": "Required For User Mananged Identity",
       "type": "String",
       "metadata": {
         "description": "The Resource Id of the User Managed Identity"
@@ -215,21 +215,21 @@
     "ApiVersion": "2024-02-01-preview",
     "workspaceSku": "premium",
     "systemAssignedObject": {
-      "type": "[parameters('ManagedIdenityType')]"
+      "type": "[parameters('ManagedIdentityType')]"
     },
     "userAssignedObject": {
-      "type": "[parameters('ManagedIdenityType')]",
+      "type": "[parameters('ManagedIdentityType')]",
       "userAssignedIdentities": {
         "[parameters('userManagedIdentityResourceId')]": {}
       }
     },
     "ConnectorSystemAssigned": {
       "id": "[resourceId('Microsoft.Databricks/accessConnectors', parameters('accessConnectorName'))]",
-      "identityType": "[parameters('ManagedIdenityType')]"
+      "identityType": "[parameters('ManagedIdentityType')]"
     },
     "connectorUserAssigned": {
       "id": "[resourceId('Microsoft.Databricks/accessConnectors', parameters('accessConnectorName'))]",
-      "identityType": "[parameters('ManagedIdenityType')]",
+      "identityType": "[parameters('ManagedIdentityType')]",
       "userAssignedIdentityId": "[parameters('userManagedIdentityResourceId')]"
     },
     "ManagedServicesCMK": {
@@ -279,7 +279,7 @@
       "apiVersion": "2023-05-01",
       "name": "[parameters('accessConnectorName')]",
       "location": "[parameters('location')]",
-      "identity": "[if(equals(parameters('ManagedIdenityType'),'SystemAssigned'),variables('systemAssignedObject'),variables('userAssignedObject'))]",
+      "identity": "[if(equals(parameters('ManagedIdentityType'),'SystemAssigned'),variables('systemAssignedObject'),variables('userAssignedObject'))]",
       "properties": {},
       "condition": "[or (and (equals(parameters('storageAccountFirewall'), 'Disabled'), parameters('workspaceCatalogEnabled')), equals(parameters('storageAccountFirewall'), 'Enabled'))]"
     },
@@ -301,7 +301,7 @@
         "privateLinkAssets": [
           "[parameters('PrivateArtifactResourceID')]"
         ],
-        "accessConnector": "[if(equals(parameters('ManagedIdenityType'),'SystemAssigned'),variables('ConnectorSystemAssigned'),variables('connectorUserAssigned'))]",
+        "accessConnector": "[if(equals(parameters('ManagedIdentityType'),'SystemAssigned'),variables('ConnectorSystemAssigned'),variables('connectorUserAssigned'))]",
         "defaultStorageFirewall": "[parameters('storageAccountFirewall')]",
         "parameters": {
           "customVirtualNetworkId": {
@@ -383,7 +383,7 @@
         "privateLinkAssets": [
           "[parameters('PrivateArtifactResourceID')]"
         ],
-        "accessConnector": "[if(equals(parameters('ManagedIdenityType'),'SystemAssigned'),variables('ConnectorSystemAssigned'),variables('connectorUserAssigned'))]",
+        "accessConnector": "[if(equals(parameters('ManagedIdentityType'),'SystemAssigned'),variables('ConnectorSystemAssigned'),variables('connectorUserAssigned'))]",
         "encryption": {
           "entities": "[variables(parameters('CustomerManagedKeyType'))]"
         },
