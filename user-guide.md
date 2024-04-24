@@ -150,8 +150,6 @@ jxbell marked this conversation as resolved.
        - For typical deployments, don't modify this field. Only set this field if you set **Managed Identity Type** to **UserAssigned**. The resource ID of the User Assigned Managed Identity if using UserAssigned Managed Identities
      * - **Storage Account Firewall**
        - Specifies whether to enable <FeatureName>. If you set this to `false`, it is critical to carefully set the **Workspace Catalog Enabled** field correctly.
-     * - **Workspace Catalog Enabled**
-       - When enabling <FeatureName>, this value is _ignored_. When disabling <FeatureName> on an existing workspace, you must specify whether your workspace uses a _Unity Catalog workspace catalog_, which means that the <WDS> contains this workspace catalog. In your workspace, in the left navigation, click **Catalogs**. Check if there is a catalog whose name matches your workspace name. If such a catalog exists, set **Workspace Catalog Enabled** to `true`. Otherwise, set it to `false`.
      * - **Disable Public Ip**
        - This must be set to `true`. This enables [secure cluster connectivity](/security/network/classic/secure-cluster-connectivity.md), which is required for <FeatureName>. This is sometimes called Disable Public IP or No Public IP.
      * - **Public Network Access**
@@ -162,9 +160,9 @@ jxbell marked this conversation as resolved.
        - Set this true if you use customer-managed keys for managed services or managed disks. See [_](/security/keys/customer-managed-keys.md). Configure the details in the other field **Customer Managed Keys Type**. Customer-managed keys for workspace storage (on Azure, this is sometimes called _customer-managed keys for DBFS root_) is not configured here.
      * - **Customer Managed Keys Type**
        - Selects the customer-managed key types for this workspace. Choose **Managed Services**, **ManagedDisks**, or **Both**. Set the appropriate fields below. See [_](/security/keys/customer-managed-keys.md). Customer-managed keys for workspace storage (on Azure, this is sometimes called _customer-managed keys for DBFS root_) is not configured here.
-     * - **Managed Svc Key Vault Uri**
+     * - **Managed Svc Key Vault Key Id**
        - Only if you use customer-managed keys for managed services, specify the key vault URI. 
-     * - **Managed Disk Key Vault Uri**
+     * - **Managed Disk Key Vault Key Id**
        - Only if you use customer-managed keys for managed disks, specify the key vault URI.
      * - **Managed Disk Auto Rotation**
        - Only if you use customer-managed keys for managed disks, specify whether to pick up new key versions automatically.
