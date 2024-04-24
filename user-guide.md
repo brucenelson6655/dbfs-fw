@@ -161,9 +161,9 @@ jxbell marked this conversation as resolved.
      * - **Customer Managed Keys Type**
        - Selects the customer-managed key types for this workspace. Choose **Managed Services**, **ManagedDisks**, or **Both**. Set the appropriate fields below. See [_](/security/keys/customer-managed-keys.md). Customer-managed keys for workspace storage (on Azure, this is sometimes called _customer-managed keys for DBFS root_) is not configured here.
      * - **Managed Svc Key Vault Key Id**
-       - Only if you use customer-managed keys for managed services, specify the key vault URI. 
+       - Only if you use customer-managed keys for managed services, specify the key vault Key ID. 
      * - **Managed Disk Key Vault Key Id**
-       - Only if you use customer-managed keys for managed disks, specify the key vault URI.
+       - Only if you use customer-managed keys for managed disks, specify the key vault Key ID.
      * - **Managed Disk Auto Rotation**
        - Only if you use customer-managed keys for managed disks, specify whether to pick up new key versions automatically.
 
