@@ -94,6 +94,13 @@
         "description": "Is UC workspace catalog enabled ?"
       }
     },
+    "PrivateArtifactResourceID": {
+      "defaultValue": "** Required for NoArzureServiceRules **",
+      "type": "string",
+      "metadata": {
+        "description": "The resource ID of the private artifact store"
+      }
+    },
     "disablePublicIp": {
       "defaultValue": true,
       "type": "Bool",
@@ -113,14 +120,15 @@
       }
     },
     "requiredNsgRules": {
-      "defaultValue": "AllRules",
+      "type": "string",
+      "defaultValue": "NoAzureServiceRules",
       "allowedValues": [
         "AllRules",
-        "NoAzureDatabricksRules"
+        "NoAzureDatabricksRules",
+        "NoAzureServiceRules"
       ],
-      "type": "String",
       "metadata": {
-        "description": "Indicates whether to retain or remove the AzureDatabricks outbound NSG rule - possible values are AllRules, NoAzureDatabricksRules (private link)."
+        "description": "Indicates whether to retain or remove the AzureDatabricks outbound NSG rule - possible values are AllRules, NoAzureDatabricksRules (private link), NoAzureServiceRules (private assets)."
       }
     },
     "storageDoubleEncryption": {
@@ -149,19 +157,46 @@
         "description": "Selects the CMK types for this workspace, Managed Services and/or Disks, Workspace storage account is not enabled here"
       }
     },
-
-    "ManagedSrvcKeyVaultKeyId": {
-      "defaultValue": "https://kv-url/keys/keyname/version",
+    "ManagedSrvcKeyVaultUri": {
+      "defaultValue": "Required for CMK for managed services only",
       "type": "String",
       "metadata": {
-        "description": "The Key Vault Key ID"
+        "description": "The Key Vault URI"
       }
     },
-    "ManagedDiskKeyVaultKeyId": {
-      "defaultValue": "https://kv-url/keys/keyname/version",
+    "ManagedSrvcKeyName": {
+      "defaultValue": "Required for CMK for managed services only",
       "type": "String",
       "metadata": {
-        "description": "The Key Vault Key ID"
+        "description": "The Key Name"
+      }
+    },
+    "ManagedSrvcKeyVersion": {
+      "defaultValue": "Required for CMK for managed services only",
+      "type": "String",
+      "metadata": {
+        "description": "The Key Version"
+      }
+    },
+    "ManagedDiskKeyVaultUri": {
+      "defaultValue": "Required for CMK for managed disks only",
+      "type": "String",
+      "metadata": {
+        "description": "The Key Vault URI"
+      }
+    },
+    "ManagedDiskKeyName": {
+      "defaultValue": "Required for CMK for managed disks only",
+      "type": "String",
+      "metadata": {
+        "description": "The Key Name"
+      }
+    },
+    "ManagedDiskKeyVersion": {
+      "defaultValue": "Required for CMK for managed disks only",
+      "type": "String",
+      "metadata": {
+        "description": "The Key Version"
       }
     },
     "ManagedDiskAutoRotation": {
@@ -173,6 +208,53 @@
       ],
       "metadata": {
         "description": "Whether managed disk will pick up new key version automatically."
+      }
+    },
+    "automaticClusterUpdate": {
+      "type": "string",
+      "defaultValue": "Disabled",
+      "allowedValues": [
+        "Disabled",
+        "Enabled"
+      ],
+      "metadata": {
+        "description": "ESC Enable/Disable automatic cluster update"
+      }
+    },
+  "enhancedSecurityMonitoring": {
+      "type": "string",
+      "defaultValue": "Disabled",
+      "allowedValues": [
+        "Disabled",
+        "Enabled"
+      ],
+      "metadata": {
+        "description": "ESC Enable/Disable enhanced security monitoring"
+      }
+    },
+  "complianceSecurityProfile": {
+      "type": "string",
+      "defaultValue": "Disabled",
+      "allowedValues": [
+        "Disabled",
+        "Enabled"
+      ],
+      "metadata": {
+        "description": "ESC Enable/Disable the Compliance Security Profile"
+      }
+    },
+  "complianceStandards": {
+      "type": "array",
+      "defaultValue": [],
+    "allowedValues": [
+      [],
+      ["NONE"],
+      ["HIPAA"],
+      ["PCI_DSS"],
+      ["HIPAA", "PCI_DSS"]
+     ],
+      "metadata": {
+        "description": "ESC Specify the desired compliance standards for your compliance security profile"
       }
     }
   },
@@ -197,17 +279,13 @@
       "identityType": "[parameters('ManagedIdenityType')]",
       "userAssignedIdentityId": "[parameters('userManagedIdentityResourceId')]"
     },
-    "managedSrvcFirst" : "[split(parameters('ManagedSrvcKeyVaultKeyId'),'/keys/')]",
-    "managedSrvcSecond" : "[split(variables('managedSrvcFirst')[1],'/')]",
-     "managedDiskFirst" : "[split(parameters('ManagedDiskKeyVaultKeyId'),'/keys/')]",
-    "managedDiskSecond" : "[split(variables('managedDiskFirst')[1],'/')]",
     "ManagedServicesCMK": {
       "managedServices": {
         "keySource": "Microsoft.Keyvault",
         "keyVaultProperties": {
-          "keyVaultUri": "[variables('managedSrvcFirst')[0]]",
-          "keyName": "[variables('managedSrvcSecond')[0]]",
-          "keyVersion": "[variables('managedSrvcSecond')[1]]"
+          "keyVaultUri": "[parameters('ManagedSrvcKeyVaultUri')]",
+          "keyName": "[parameters('ManagedSrvcKeyName')]",
+          "keyVersion": "[parameters('ManagedSrvcKeyVersion')]"
         }
       }
     },
@@ -215,9 +293,9 @@
       "managedDisk": {
         "keySource": "Microsoft.Keyvault",
         "keyVaultProperties": {
-          "keyVaultUri": "[variables('managedDiskFirst')[0]]",
-          "keyName": "[variables('managedDiskSecond')[0]]",
-          "keyVersion": "[variables('managedDiskSecond')[1]]"
+          "keyVaultUri": "[parameters('ManagedDiskKeyVaultUri')]",
+          "keyName": "[parameters('ManagedDiskKeyName')]",
+          "keyVersion": "[parameters('ManagedDiskKeyVersion')]"
         },
         "rotationToLatestKeyVersionEnabled": "[parameters('ManagedDiskAutoRotation')]"
       }
@@ -226,17 +304,17 @@
       "managedServices": {
         "keySource": "Microsoft.Keyvault",
         "keyVaultProperties": {
-          "keyVaultUri": "[variables('managedSrvcFirst')[0]]",
-          "keyName": "[variables('managedSrvcSecond')[0]]",
-          "keyVersion": "[variables('managedSrvcSecond')[1]]"
+          "keyVaultUri": "[parameters('ManagedSrvcKeyVaultUri')]",
+          "keyName": "[parameters('ManagedSrvcKeyName')]",
+          "keyVersion": "[parameters('ManagedSrvcKeyVersion')]"
         }
       },
       "managedDisk": {
         "keySource": "Microsoft.Keyvault",
         "keyVaultProperties": {
-          "keyVaultUri": "[variables('managedDiskFirst')[0]]",
-          "keyName": "[variables('managedDiskSecond')[0]]",
-          "keyVersion": "[variables('managedDiskSecond')[1]]"
+          "keyVaultUri": "[parameters('ManagedDiskKeyVaultUri')]",
+          "keyName": "[parameters('ManagedDiskKeyName')]",
+          "keyVersion": "[parameters('ManagedDiskKeyVersion')]"
         },
         "rotationToLatestKeyVersionEnabled": "[parameters('ManagedDiskAutoRotation')]"
       }
@@ -266,7 +344,22 @@
       "properties": {
         "managedResourceGroupId": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('managedResourceGroupName'))]",
         "publicNetworkAccess": "[parameters('publicNetworkAccess')]",
+        "enhancedSecurityCompliance": {
+          "automaticClusterUpdate": {
+            "value": "[parameters('automaticClusterUpdate')]"
+          },
+          "complianceSecurityProfile": {
+            "value": "[parameters('complianceSecurityProfile')]",
+            "complianceStandards": "[parameters('complianceStandards')]"
+          },
+          "enhancedSecurityMonitoring": {
+            "value": "[parameters('enhancedSecurityMonitoring')]"
+          }
+        },
         "requiredNsgRules": "[parameters('requiredNsgRules')]",
+        "privateLinkAssets": [
+          "[parameters('PrivateArtifactResourceID')]"
+        ],
         "accessConnector": "[if(equals(parameters('ManagedIdenityType'),'SystemAssigned'),variables('ConnectorSystemAssigned'),variables('connectorUserAssigned'))]",
         "defaultStorageFirewall": "[parameters('storageAccountFirewall')]",
         "parameters": {
@@ -304,6 +397,21 @@
         "managedResourceGroupId": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('managedResourceGroupName'))]",
         "publicNetworkAccess": "[parameters('publicNetworkAccess')]",
         "requiredNsgRules": "[parameters('requiredNsgRules')]",
+        "enhancedSecurityCompliance": {
+          "automaticClusterUpdate": {
+            "value": "[parameters('automaticClusterUpdate')]"
+          },
+          "complianceSecurityProfile": {
+            "value": "[parameters('complianceSecurityProfile')]",
+            "complianceStandards": "[parameters('complianceStandards')]"
+          },
+          "enhancedSecurityMonitoring": {
+            "value": "[parameters('enhancedSecurityMonitoring')]"
+          }
+        },
+        "privateLinkAssets": [
+          "[parameters('PrivateArtifactResourceID')]"
+        ],
         "defaultStorageFirewall": "Disabled",
         "parameters": {
           "customVirtualNetworkId": {
@@ -342,7 +450,22 @@
       "properties": {
         "managedResourceGroupId": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('managedResourceGroupName'))]",
         "publicNetworkAccess": "[parameters('publicNetworkAccess')]",
+        "enhancedSecurityCompliance": {
+          "automaticClusterUpdate": {
+            "value": "[parameters('automaticClusterUpdate')]"
+          },
+          "complianceSecurityProfile": {
+            "value": "[parameters('complianceSecurityProfile')]",
+            "complianceStandards": "[parameters('complianceStandards')]"
+          },
+          "enhancedSecurityMonitoring": {
+            "value": "[parameters('enhancedSecurityMonitoring')]"
+          }
+        },
         "requiredNsgRules": "[parameters('requiredNsgRules')]",
+        "privateLinkAssets": [
+          "[parameters('PrivateArtifactResourceID')]"
+        ],
         "accessConnector": "[if(equals(parameters('ManagedIdenityType'),'SystemAssigned'),variables('ConnectorSystemAssigned'),variables('connectorUserAssigned'))]",
         "encryption": {
           "entities": "[variables(parameters('CustomerManagedKeyType'))]"
@@ -382,7 +505,22 @@
       "properties": {
         "managedResourceGroupId": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('managedResourceGroupName'))]",
         "publicNetworkAccess": "[parameters('publicNetworkAccess')]",
+        "enhancedSecurityCompliance": {
+          "automaticClusterUpdate": {
+            "value": "[parameters('automaticClusterUpdate')]"
+          },
+          "complianceSecurityProfile": {
+            "value": "[parameters('complianceSecurityProfile')]",
+            "complianceStandards": "[parameters('complianceStandards')]"
+          },
+          "enhancedSecurityMonitoring": {
+            "value": "[parameters('enhancedSecurityMonitoring')]"
+          }
+        },
         "requiredNsgRules": "[parameters('requiredNsgRules')]",
+        "privateLinkAssets": [
+          "[parameters('PrivateArtifactResourceID')]"
+        ],
         "defaultStorageFirewall": "Disabled",
         "encryption": {
           "entities": "[variables(parameters('CustomerManagedKeyType'))]"

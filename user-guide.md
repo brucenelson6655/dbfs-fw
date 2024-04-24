@@ -163,19 +163,9 @@ jxbell marked this conversation as resolved.
      * - **Customer Managed Keys Type**
        - Selects the customer-managed key types for this workspace. Choose **Managed Services**, **ManagedDisks**, or **Both**. Set the appropriate fields below. See [_](/security/keys/customer-managed-keys.md). Customer-managed keys for workspace storage (on Azure, this is sometimes called _customer-managed keys for DBFS root_) is not configured here.
      * - **Managed Svc Key Vault Uri**
-       - Only if you use customer-managed keys for managed services, specify the key vault URI.
-     * - **Managed Svc Key Name**
-       - Only if you use customer-managed keys for managed services, specify the key name.
-     * - **Managed Svc Key Version**
-       - Only if you use customer-managed keys for managed services, specify the key version.
+       - Only if you use customer-managed keys for managed services, specify the key vault URI. 
      * - **Managed Disk Key Vault Uri**
        - Only if you use customer-managed keys for managed disks, specify the key vault URI.
-     * - **Managed Disk Key Name**
-       - Only if you use customer-managed keys for managed disks, specify the key name.
-     * - **Managed Disk Key Version**
-       - Only if you use customer-managed keys for managed disks, specify the key version.
-     * - **Managed Disk Key Version**
-       - Only if you use customer-managed keys for managed disks, specify the key version.
      * - **Managed Disk Auto Rotation**
        - Only if you use customer-managed keys for managed disks, specify whether to pick up new key versions automatically.
 
@@ -824,306 +814,417 @@ https://github.com/brucenelson6655/dbfs-fw/blob/main/cusom-vnet.json
 
 ```
 {
-    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-    "contentVersion": "1.0.0.0",
-    "parameters": {
-        "networkSecurityGroups_template_nsg_name": {
-            "defaultValue": "template-nsg",
-            "type": "String"
-        },
-        "location": {
-            "type": "string",
-            "defaultValue": "[resourceGroup().location]",
-            "metadata": {
-                "description": "Location for all resources."
-            }
-        },
-        "virtualNetworks_template_vnet_name": {
-            "defaultValue": "template-vnet",
-            "type": "String"
-        },
-        "vnetAdressSpace" : {
-            "defaultValue": "100.64.0.0/24",
-            "type": "String"
-        },
-        "privateSubnetName" : {
-            "defaultValue": "private-subnet",
-            "type": "String"
-        },
-        "privateSubnetCIDR" : {
-            "defaultValue": "100.64.0.64/26",
-            "type": "String"
-        },
-        "publicSubnetName" : {
-            "defaultValue": "public-subnet",
-            "type": "String"
-        },
-        "publicSubnetCIDR" : {
-            "defaultValue": "100.64.0.0/26",
-            "type": "String"
-        },
-        "privateLinkSubnetName" : {
-            "defaultValue": "PE",
-            "type": "String"
-        },
-        "privateLinkCIDR" : {
-            "defaultValue": "100.64.0.224/27",
-            "type": "String"
-        }
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "workspaceName": {
+      "type": "String",
+      "metadata": {
+        "description": "The name of the Azure Databricks workspace to update."
+      }
     },
-    "variables": {},
-    "resources": [
-        {
-            "type": "Microsoft.Network/networkSecurityGroups",
-            "apiVersion": "2023-06-01",
-            "name": "[parameters('networkSecurityGroups_template_nsg_name')]",
-            "location": "[parameters('location')]",
-            "properties": {
-                "securityRules": [
-                    {
-                        "name": "Microsoft.Databricks-workspaces_UseOnly_databricks-worker-to-worker-inbound",
-                        "properties": {
-                            "description": "Required for worker nodes communication within a cluster.",
-                            "protocol": "*",
-                            "sourcePortRange": "*",
-                            "destinationPortRange": "*",
-                            "sourceAddressPrefix": "VirtualNetwork",
-                            "destinationAddressPrefix": "VirtualNetwork",
-                            "access": "Allow",
-                            "priority": 100,
-                            "direction": "Inbound"
-                        }
-                    },
-                    {
-                        "name": "Microsoft.Databricks-workspaces_UseOnly_databricks-worker-to-databricks-webapp",
-                        "properties": {
-                            "description": "Required for workers communication with Databricks Webapp.",
-                            "protocol": "Tcp",
-                            "sourcePortRange": "*",
-                            "destinationPortRange": "443",
-                            "sourceAddressPrefix": "VirtualNetwork",
-                            "destinationAddressPrefix": "AzureDatabricks",
-                            "access": "Allow",
-                            "priority": 100,
-                            "direction": "Outbound"
-                        }
-                    },
-                    {
-                        "name": "Microsoft.Databricks-workspaces_UseOnly_databricks-worker-to-sql",
-                        "properties": {
-                            "description": "Required for workers communication with Azure SQL services.",
-                            "protocol": "Tcp",
-                            "sourcePortRange": "*",
-                            "destinationPortRange": "3306",
-                            "sourceAddressPrefix": "VirtualNetwork",
-                            "destinationAddressPrefix": "Sql",
-                            "access": "Allow",
-                            "priority": 101,
-                            "direction": "Outbound"
-                        }
-                    },
-                    {
-                        "name": "Microsoft.Databricks-workspaces_UseOnly_databricks-worker-to-storage",
-                        "properties": {
-                            "description": "Required for workers communication with Azure Storage services.",
-                            "protocol": "Tcp",
-                            "sourcePortRange": "*",
-                            "destinationPortRange": "443",
-                            "sourceAddressPrefix": "VirtualNetwork",
-                            "destinationAddressPrefix": "Storage",
-                            "access": "Allow",
-                            "priority": 102,
-                            "direction": "Outbound"
-                        }
-                    },
-                    {
-                        "name": "Microsoft.Databricks-workspaces_UseOnly_databricks-worker-to-worker-outbound",
-                        "properties": {
-                            "description": "Required for worker nodes communication within a cluster.",
-                            "protocol": "*",
-                            "sourcePortRange": "*",
-                            "destinationPortRange": "*",
-                            "sourceAddressPrefix": "VirtualNetwork",
-                            "destinationAddressPrefix": "VirtualNetwork",
-                            "access": "Allow",
-                            "priority": 103,
-                            "direction": "Outbound"
-                        }
-                    },
-                    {
-                        "name": "Microsoft.Databricks-workspaces_UseOnly_databricks-worker-to-eventhub",
-                        "properties": {
-                            "description": "Required for worker communication with Azure Eventhub services.",
-                            "protocol": "Tcp",
-                            "sourcePortRange": "*",
-                            "destinationPortRange": "9093",
-                            "sourceAddressPrefix": "VirtualNetwork",
-                            "destinationAddressPrefix": "EventHub",
-                            "access": "Allow",
-                            "priority": 104,
-                            "direction": "Outbound"
-                        }
-                    }
-                ]
-            }
-        },
-        {
-            "type": "Microsoft.Network/virtualNetworks",
-            "apiVersion": "2023-06-01",
-            "name": "[parameters('virtualNetworks_template_vnet_name')]",
-            "location": "[parameters('location')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_template_nsg_name'))]"
-            ],
-            "properties": {
-                "addressSpace": {
-                    "addressPrefixes": [
-                        "[parameters('vnetAdressSpace')]"
-                    ]
-                },
-                "encryption": {
-                    "enabled": false,
-                    "enforcement": "AllowUnencrypted"
-                },
-                "subnets": [
-                    {
-                        "name": "[parameters('privateLinkSubnetName')]",
-                        "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_template_vnet_name'), parameters('privateLinkSubnetName'))]",
-                        "properties": {
-                            "addressPrefixes": [
-                                "[parameters('privateLinkCIDR')]"
-                            ],
-                            "delegations": [],
-                            "privateEndpointNetworkPolicies": "Disabled",
-                            "privateLinkServiceNetworkPolicies": "Enabled"
-                        },
-                        "type": "Microsoft.Network/virtualNetworks/subnets"
-                    },
-                    {
-                        "name": "[parameters('publicSubnetName')]",
-                        "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_template_vnet_name'), parameters('publicSubnetName'))]",
-                        "properties": {
-                            "addressPrefix": "[parameters('publicSubnetCIDR')]",
-                            "networkSecurityGroup": {
-                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_template_nsg_name'))]"
-                            },
-                            "serviceEndpoints": [],
-                            "delegations": [
-                                {
-                                    "name": "Microsoft.Databricks.workspaces",
-                                    "id": "[concat(resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_template_vnet_name'), parameters('publicSubnetName')), '/delegations/Microsoft.Databricks.workspaces')]",
-                                    "properties": {
-                                        "serviceName": "Microsoft.Databricks/workspaces"
-                                    },
-                                    "type": "Microsoft.Network/virtualNetworks/subnets/delegations"
-                                }
-                            ],
-                            "privateEndpointNetworkPolicies": "Disabled",
-                            "privateLinkServiceNetworkPolicies": "Enabled"
-                        },
-                        "type": "Microsoft.Network/virtualNetworks/subnets"
-                    },
-                    {
-                        "name": "[parameters('privateSubnetName')]",
-                        "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_template_vnet_name'), parameters('privateSubnetName'))]",
-                        "properties": {
-                            "addressPrefix": "[parameters('privateSubnetCIDR')]",
-                            "networkSecurityGroup": {
-                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_template_nsg_name'))]"
-                            },
-                            "serviceEndpoints": [],
-                            "delegations": [
-                                {
-                                    "name": "Microsoft.Databricks.workspaces",
-                                    "id": "[concat(resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_template_vnet_name'), parameters('privateSubnetName')), '/delegations/Microsoft.Databricks.workspaces')]",
-                                    "properties": {
-                                        "serviceName": "Microsoft.Databricks/workspaces"
-                                    },
-                                    "type": "Microsoft.Network/virtualNetworks/subnets/delegations"
-                                }
-                            ],
-                            "privateEndpointNetworkPolicies": "Disabled",
-                            "privateLinkServiceNetworkPolicies": "Enabled"
-                        },
-                        "type": "Microsoft.Network/virtualNetworks/subnets"
-                    }
-                ],
-                "virtualNetworkPeerings": [],
-                "enableDdosProtection": false
-            }
-        },
-        {
-            "type": "Microsoft.Network/virtualNetworks/subnets",
-            "apiVersion": "2023-06-01",
-            "name": "[concat(parameters('virtualNetworks_template_vnet_name'), '/',parameters('privateLinkSubnetName'))]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_template_vnet_name'))]"
-            ],
-            "properties": {
-                "addressPrefixes": [
-                    "[parameters('privateLinkCIDR')]"
-                ],
-                "delegations": [],
-                "privateEndpointNetworkPolicies": "Disabled",
-                "privateLinkServiceNetworkPolicies": "Enabled"
-            }
-        },
-        {
-            "type": "Microsoft.Network/virtualNetworks/subnets",
-            "apiVersion": "2023-06-01",
-            "name": "[concat(parameters('virtualNetworks_template_vnet_name'), '/', parameters('privateSubnetName'))]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_template_vnet_name'))]",
-                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_template_nsg_name'))]"
-            ],
-            "properties": {
-                "addressPrefix": "[parameters('privateSubnetCIDR')]",
-                "networkSecurityGroup": {
-                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_template_nsg_name'))]"
-                },
-                "serviceEndpoints": [],
-                "delegations": [
-                    {
-                        "name": "Microsoft.Databricks.workspaces",
-                        "id": "[concat(resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_template_vnet_name'), parameters('privateSubnetName')), '/delegations/Microsoft.Databricks.workspaces')]",
-                        "properties": {
-                            "serviceName": "Microsoft.Databricks/workspaces"
-                        },
-                        "type": "Microsoft.Network/virtualNetworks/subnets/delegations"
-                    }
-                ],
-                "privateEndpointNetworkPolicies": "Disabled",
-                "privateLinkServiceNetworkPolicies": "Enabled"
-            }
-        },
-        {
-            "type": "Microsoft.Network/virtualNetworks/subnets",
-            "apiVersion": "2023-06-01",
-            "name": "[concat(parameters('virtualNetworks_template_vnet_name'), '/', parameters('publicSubnetName'))]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_template_vnet_name'))]",
-                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_template_nsg_name'))]"
-            ],
-            "properties": {
-                "addressPrefix": "[parameters('publicSubnetCIDR')]",
-                "networkSecurityGroup": {
-                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_template_nsg_name'))]"
-                },
-                "serviceEndpoints": [],
-                "delegations": [
-                    {
-                        "name": "Microsoft.Databricks.workspaces",
-                        "id": "[concat(resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_template_vnet_name'), parameters('publicSubnetName')), '/delegations/Microsoft.Databricks.workspaces')]",
-                        "properties": {
-                            "serviceName": "Microsoft.Databricks/workspaces"
-                        },
-                        "type": "Microsoft.Network/virtualNetworks/subnets/delegations"
-                    }
-                ],
-                "privateEndpointNetworkPolicies": "Disabled",
-                "privateLinkServiceNetworkPolicies": "Enabled"
-            }
+    "location": {
+      "defaultValue": "[resourceGroup().location]",
+      "type": "String",
+      "metadata": {
+        "description": "Location for all resources."
+      }
+    },
+    "managedResourceGroupName": {
+      "defaultValue": "[format('databricks-rg-{0}-{1}', parameters('workspaceName'), uniqueString(parameters('workspaceName'), resourceGroup().id))]",
+      "type": "String",
+      "metadata": {
+        "description": "The Managed Resource GroupName of the workspace. Do not change unless using a custom managed resource group name."
+      }
+    },
+    "storageAccountName": {
+      "defaultValue": "[concat('dbstorage', uniqueString(resourceGroup().id, subscription().id))]",
+      "type": "String",
+      "metadata": {
+        "description": "Workspace storage account name. Do not change unless using a custom storage account name."
+      }
+    },
+    "workspaceVnetResourceId": {
+      "defaultValue": "Required Resource ID of the workspace VNet",
+      "type": "String",
+      "metadata": {
+        "description": "The Resource ID of the injected VNet for the workspace"
+      }
+    },
+    "workspacePrivateSubnetName": {
+      "defaultValue": "private-subnet",
+      "type": "String",
+      "metadata": {
+        "description": "The private subnet name for the workspace"
+      }
+    },
+    "workspacePublicSubnetName": {
+      "defaultValue": "public-subnet",
+      "type": "String",
+      "metadata": {
+        "description": "The public subnet name for the workspace"
+      }
+    },
+    "accessConnectorName": {
+      "defaultValue": "[format('{0}-access-connector', parameters('workspaceName'))]",
+      "type": "String",
+      "metadata": {
+        "description": "The access connector to create for the workspace"
+      }
+    },
+    "ManagedIdenityType": {
+      "defaultValue": "SystemAssigned",
+      "allowedValues": [
+        "SystemAssigned",
+        "UserAssigned",
+        "SystemAssigned,UserAssigned"
+      ],
+      "type": "String",
+      "metadata": {
+        "description": "Access Connector Managed Idenity Type"
+      }
+    },
+    "userManagedIdentityResourceId": {
+      "defaultValue": "Required For User Mananged Idenity",
+      "type": "String",
+      "metadata": {
+        "description": "The Resource Id of the User Managed Identity"
+      }
+    },
+    "storageAccountFirewall": {
+      "defaultValue": "Enabled",
+      "allowedValues": [
+        "Enabled",
+        "Disabled"
+      ],
+      "type": "String",
+      "metadata": {
+        "description": "Enable or Disable firewall support for workspace default storage feature"
+      }
+    },
+    "workspaceCatalogEnabled": {
+      "defaultValue": false,
+      "type": "Bool",
+      "metadata": {
+        "description": "Is UC workspace catalog enabled ?"
+      }
+    },
+    "disablePublicIp": {
+      "defaultValue": true,
+      "type": "Bool",
+      "metadata": {
+        "description": "Specifies whether to deploy Azure Databricks workspace with secure cluster connectivity (SCC) enabled or not (No Public IP)."
+      }
+    },
+    "publicNetworkAccess": {
+      "defaultValue": "Enabled",
+      "allowedValues": [
+        "Enabled",
+        "Disabled"
+      ],
+      "type": "String",
+      "metadata": {
+        "description": "Indicates whether public network access is allowed to the workspace with private endpoint - possible values are Enabled or Disabled."
+      }
+    },
+    "requiredNsgRules": {
+      "defaultValue": "AllRules",
+      "allowedValues": [
+        "AllRules",
+        "NoAzureDatabricksRules"
+      ],
+      "type": "String",
+      "metadata": {
+        "description": "Indicates whether to retain or remove the AzureDatabricks outbound NSG rule - possible values are AllRules, NoAzureDatabricksRules (private link)."
+      }
+    },
+    "storageDoubleEncryption": {
+      "defaultValue": false,
+      "type": "Bool",
+      "metadata": {
+        "description": "Is double encryption for managed storage enabled ?"
+      }
+    },
+    "customerManagedKeysEnabled": {
+      "defaultValue": false,
+      "type": "Bool",
+      "metadata": {
+        "description": "Is CMK for managed services enabled ?"
+      }
+    },
+    "CustomerManagedKeyType": {
+      "defaultValue": "ManagedServicesCMK",
+      "allowedValues": [
+        "ManagedServicesCMK",
+        "ManagedDisksCMK",
+        "BothCMK"
+      ],
+      "type": "String",
+      "metadata": {
+        "description": "Selects the CMK types for this workspace, Managed Services and/or Disks, Workspace storage account is not enabled here"
+      }
+    },
+
+    "ManagedSrvcKeyVaultKeyId": {
+      "defaultValue": "https://kv-url/keys/keyname/version",
+      "type": "String",
+      "metadata": {
+        "description": "The Key Vault Key ID"
+      }
+    },
+    "ManagedDiskKeyVaultKeyId": {
+      "defaultValue": "https://kv-url/keys/keyname/version",
+      "type": "String",
+      "metadata": {
+        "description": "The Key Vault Key ID"
+      }
+    },
+    "ManagedDiskAutoRotation": {
+      "type": "bool",
+      "defaultValue": false,
+      "allowedValues": [
+        true,
+        false
+      ],
+      "metadata": {
+        "description": "Whether managed disk will pick up new key version automatically."
+      }
+    }
+  },
+  "variables": {
+    "ApiVersion": "2024-02-01-preview",
+    "workspaceSku": "premium",
+    "systemAssignedObject": {
+      "type": "[parameters('ManagedIdenityType')]"
+    },
+    "userAssignedObject": {
+      "type": "[parameters('ManagedIdenityType')]",
+      "userAssignedIdentities": {
+        "[parameters('userManagedIdentityResourceId')]": {}
+      }
+    },
+    "ConnectorSystemAssigned": {
+      "id": "[resourceId('Microsoft.Databricks/accessConnectors', parameters('accessConnectorName'))]",
+      "identityType": "[parameters('ManagedIdenityType')]"
+    },
+    "connectorUserAssigned": {
+      "id": "[resourceId('Microsoft.Databricks/accessConnectors', parameters('accessConnectorName'))]",
+      "identityType": "[parameters('ManagedIdenityType')]",
+      "userAssignedIdentityId": "[parameters('userManagedIdentityResourceId')]"
+    },
+    "managedSrvcFirst" : "[split(parameters('ManagedSrvcKeyVaultKeyId'),'/keys/')]",
+    "managedSrvcSecond" : "[split(variables('managedSrvcFirst')[1],'/')]",
+     "managedDiskFirst" : "[split(parameters('ManagedDiskKeyVaultKeyId'),'/keys/')]",
+    "managedDiskSecond" : "[split(variables('managedDiskFirst')[1],'/')]",
+    "ManagedServicesCMK": {
+      "managedServices": {
+        "keySource": "Microsoft.Keyvault",
+        "keyVaultProperties": {
+          "keyVaultUri": "[variables('managedSrvcFirst')[0]]",
+          "keyName": "[variables('managedSrvcSecond')[0]]",
+          "keyVersion": "[variables('managedSrvcSecond')[1]]"
         }
-    ]
+      }
+    },
+    "ManagedDisksCMK": {
+      "managedDisk": {
+        "keySource": "Microsoft.Keyvault",
+        "keyVaultProperties": {
+          "keyVaultUri": "[variables('managedDiskFirst')[0]]",
+          "keyName": "[variables('managedDiskSecond')[0]]",
+          "keyVersion": "[variables('managedDiskSecond')[1]]"
+        },
+        "rotationToLatestKeyVersionEnabled": "[parameters('ManagedDiskAutoRotation')]"
+      }
+    },
+    "BothCMK": {
+      "managedServices": {
+        "keySource": "Microsoft.Keyvault",
+        "keyVaultProperties": {
+          "keyVaultUri": "[variables('managedSrvcFirst')[0]]",
+          "keyName": "[variables('managedSrvcSecond')[0]]",
+          "keyVersion": "[variables('managedSrvcSecond')[1]]"
+        }
+      },
+      "managedDisk": {
+        "keySource": "Microsoft.Keyvault",
+        "keyVaultProperties": {
+          "keyVaultUri": "[variables('managedDiskFirst')[0]]",
+          "keyName": "[variables('managedDiskSecond')[0]]",
+          "keyVersion": "[variables('managedDiskSecond')[1]]"
+        },
+        "rotationToLatestKeyVersionEnabled": "[parameters('ManagedDiskAutoRotation')]"
+      }
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Databricks/accessConnectors",
+      "apiVersion": "2023-05-01",
+      "name": "[parameters('accessConnectorName')]",
+      "location": "[parameters('location')]",
+      "identity": "[if(equals(parameters('ManagedIdenityType'),'SystemAssigned'),variables('systemAssignedObject'),variables('userAssignedObject'))]",
+      "properties": {},
+      "condition": "[or (and (equals(parameters('storageAccountFirewall'), 'Disabled'), parameters('workspaceCatalogEnabled')), equals(parameters('storageAccountFirewall'), 'Enabled'))]"
+    },
+    {
+      "type": "Microsoft.Databricks/workspaces",
+      "apiVersion": "[variables('ApiVersion')]",
+      "name": "[parameters('workspaceName')]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Databricks/accessConnectors', parameters('accessConnectorName'))]"
+      ],
+      "sku": {
+        "name": "[variables('workspaceSku')]"
+      },
+      "properties": {
+        "managedResourceGroupId": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('managedResourceGroupName'))]",
+        "publicNetworkAccess": "[parameters('publicNetworkAccess')]",
+        "requiredNsgRules": "[parameters('requiredNsgRules')]",
+        "accessConnector": "[if(equals(parameters('ManagedIdenityType'),'SystemAssigned'),variables('ConnectorSystemAssigned'),variables('connectorUserAssigned'))]",
+        "defaultStorageFirewall": "[parameters('storageAccountFirewall')]",
+        "parameters": {
+          "customVirtualNetworkId": {
+            "value": "[parameters('workspaceVnetResourceId')]"
+          },
+          "customPrivateSubnetName": {
+            "value": "[parameters('workspacePrivateSubnetName')]"
+          },
+          "customPublicSubnetName": {
+            "value": "[parameters('workspacePublicSubnetName')]"
+          },
+          "enableNoPublicIp": {
+            "value": "[parameters('disablePublicIp')]"
+          },
+          "storageAccountName": {
+            "value": "[parameters('storageAccountName')]"
+          },
+          "requireInfrastructureEncryption": {
+            "value": "[parameters('storageDoubleEncryption')]"
+          }
+        }
+      },
+      "condition": "[or (and (equals(parameters('storageAccountFirewall'), 'Disabled'), parameters('workspaceCatalogEnabled'), not(parameters('customerManagedKeysEnabled'))), and (equals(parameters('storageAccountFirewall'), 'Enabled'), not(parameters('customerManagedKeysEnabled'))))]"
+    },
+    {
+      "type": "Microsoft.Databricks/workspaces",
+      "apiVersion": "[variables('ApiVersion')]",
+      "name": "[parameters('workspaceName')]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "[variables('workspaceSku')]"
+      },
+      "properties": {
+        "managedResourceGroupId": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('managedResourceGroupName'))]",
+        "publicNetworkAccess": "[parameters('publicNetworkAccess')]",
+        "requiredNsgRules": "[parameters('requiredNsgRules')]",
+        "defaultStorageFirewall": "Disabled",
+        "parameters": {
+          "customVirtualNetworkId": {
+            "value": "[parameters('workspaceVnetResourceId')]"
+          },
+          "customPrivateSubnetName": {
+            "value": "[parameters('workspacePrivateSubnetName')]"
+          },
+          "customPublicSubnetName": {
+            "value": "[parameters('workspacePublicSubnetName')]"
+          },
+          "enableNoPublicIp": {
+            "value": "[parameters('disablePublicIp')]"
+          },
+          "storageAccountName": {
+            "value": "[parameters('storageAccountName')]"
+          },
+          "requireInfrastructureEncryption": {
+            "value": "[parameters('storageDoubleEncryption')]"
+          }
+        }
+      },
+      "condition": "[and (equals(parameters('storageAccountFirewall'), 'Disabled'), not(parameters('workspaceCatalogEnabled')), not(parameters('customerManagedKeysEnabled'))) ]"
+    },
+    {
+      "type": "Microsoft.Databricks/workspaces",
+      "apiVersion": "[variables('ApiVersion')]",
+      "name": "[parameters('workspaceName')]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Databricks/accessConnectors', parameters('accessConnectorName'))]"
+      ],
+      "sku": {
+        "name": "[variables('workspaceSku')]"
+      },
+      "properties": {
+        "managedResourceGroupId": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('managedResourceGroupName'))]",
+        "publicNetworkAccess": "[parameters('publicNetworkAccess')]",
+        "requiredNsgRules": "[parameters('requiredNsgRules')]",
+        "accessConnector": "[if(equals(parameters('ManagedIdenityType'),'SystemAssigned'),variables('ConnectorSystemAssigned'),variables('connectorUserAssigned'))]",
+        "encryption": {
+          "entities": "[variables(parameters('CustomerManagedKeyType'))]"
+        },
+        "defaultStorageFirewall": "[parameters('storageAccountFirewall')]",
+        "parameters": {
+          "customVirtualNetworkId": {
+            "value": "[parameters('workspaceVnetResourceId')]"
+          },
+          "customPrivateSubnetName": {
+            "value": "[parameters('workspacePrivateSubnetName')]"
+          },
+          "customPublicSubnetName": {
+            "value": "[parameters('workspacePublicSubnetName')]"
+          },
+          "enableNoPublicIp": {
+            "value": "[parameters('disablePublicIp')]"
+          },
+          "storageAccountName": {
+            "value": "[parameters('storageAccountName')]"
+          },
+          "requireInfrastructureEncryption": {
+            "value": "[parameters('storageDoubleEncryption')]"
+          }
+        }
+      },
+      "condition": "[or ( and ( equals(parameters('storageAccountFirewall'), 'Disabled'), parameters('workspaceCatalogEnabled'), parameters('customerManagedKeysEnabled')), and (equals(parameters('storageAccountFirewall'), 'Enabled'), parameters('customerManagedKeysEnabled')))]"
+    },
+    {
+      "type": "Microsoft.Databricks/workspaces",
+      "apiVersion": "[variables('ApiVersion')]",
+      "name": "[parameters('workspaceName')]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "[variables('workspaceSku')]"
+      },
+      "properties": {
+        "managedResourceGroupId": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('managedResourceGroupName'))]",
+        "publicNetworkAccess": "[parameters('publicNetworkAccess')]",
+        "requiredNsgRules": "[parameters('requiredNsgRules')]",
+        "defaultStorageFirewall": "Disabled",
+        "encryption": {
+          "entities": "[variables(parameters('CustomerManagedKeyType'))]"
+        },
+        "parameters": {
+          "customVirtualNetworkId": {
+            "value": "[parameters('workspaceVnetResourceId')]"
+          },
+          "customPrivateSubnetName": {
+            "value": "[parameters('workspacePrivateSubnetName')]"
+          },
+          "customPublicSubnetName": {
+            "value": "[parameters('workspacePublicSubnetName')]"
+          },
+          "enableNoPublicIp": {
+            "value": "[parameters('disablePublicIp')]"
+          },
+          "storageAccountName": {
+            "value": "[parameters('storageAccountName')]"
+          },
+          "requireInfrastructureEncryption": {
+            "value": "[parameters('storageDoubleEncryption')]"
+          }
+        }
+      },
+      "condition": "[and (equals(parameters('storageAccountFirewall'), 'Disabled'), not(parameters('workspaceCatalogEnabled')), parameters('customerManagedKeysEnabled'))]"
+    }
+  ]
 }
 ```

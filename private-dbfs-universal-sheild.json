@@ -201,6 +201,53 @@
       "metadata": {
         "description": "Whether managed disk will pick up new key version automatically."
       }
+    },
+    "automaticClusterUpdate": {
+      "type": "string",
+      "defaultValue": "Disabled",
+      "allowedValues": [
+        "Disabled",
+        "Enabled"
+      ],
+      "metadata": {
+        "description": "ESC Enable/Disable automatic cluster update"
+      }
+    },
+  "enhancedSecurityMonitoring": {
+      "type": "string",
+      "defaultValue": "Disabled",
+      "allowedValues": [
+        "Disabled",
+        "Enabled"
+      ],
+      "metadata": {
+        "description": "ESC Enable/Disable enhanced security monitoring"
+      }
+    },
+  "complianceSecurityProfile": {
+      "type": "string",
+      "defaultValue": "Disabled",
+      "allowedValues": [
+        "Disabled",
+        "Enabled"
+      ],
+      "metadata": {
+        "description": "ESC Enable/Disable the Compliance Security Profile"
+      }
+    },
+  "complianceStandards": {
+      "type": "array",
+      "defaultValue": [],
+    "allowedValues": [
+      [],
+      ["NONE"],
+      ["HIPAA"],
+      ["PCI_DSS"],
+      ["HIPAA", "PCI_DSS"]
+     ],
+      "metadata": {
+        "description": "ESC Specify the desired compliance standards for your compliance security profile"
+      }
     }
   },
   "variables": {
@@ -289,9 +336,21 @@
       "properties": {
         "managedResourceGroupId": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('managedResourceGroupName'))]",
         "publicNetworkAccess": "[parameters('publicNetworkAccess')]",
+        "enhancedSecurityCompliance": {
+          "automaticClusterUpdate": {
+            "value": "[parameters('automaticClusterUpdate')]"
+          },
+          "complianceSecurityProfile": {
+            "value": "[parameters('complianceSecurityProfile')]",
+            "complianceStandards": "[parameters('complianceStandards')]"
+          },
+          "enhancedSecurityMonitoring": {
+            "value": "[parameters('enhancedSecurityMonitoring')]"
+          }
+        },
         "requiredNsgRules": "[parameters('requiredNsgRules')]",
         "accessConnector": "[if(equals(parameters('ManagedIdenityType'),'SystemAssigned'),variables('ConnectorSystemAssigned'),variables('connectorUserAssigned'))]",
-        "privateDbfsAccess": "[parameters('storageAccountFirewall')]",
+        "defaultStorageFirewall": "[parameters('storageAccountFirewall')]",
         "parameters": {
           "customVirtualNetworkId": {
             "value": "[parameters('workspaceVnetResourceId')]"
@@ -327,7 +386,19 @@
         "managedResourceGroupId": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('managedResourceGroupName'))]",
         "publicNetworkAccess": "[parameters('publicNetworkAccess')]",
         "requiredNsgRules": "[parameters('requiredNsgRules')]",
-        "privateDbfsAccess": "Disabled",
+        "enhancedSecurityCompliance": {
+          "automaticClusterUpdate": {
+            "value": "[parameters('automaticClusterUpdate')]"
+          },
+          "complianceSecurityProfile": {
+            "value": "[parameters('complianceSecurityProfile')]",
+            "complianceStandards": "[parameters('complianceStandards')]"
+          },
+          "enhancedSecurityMonitoring": {
+            "value": "[parameters('enhancedSecurityMonitoring')]"
+          }
+        },
+        "defaultStorageFirewall": "Disabled",
         "parameters": {
           "customVirtualNetworkId": {
             "value": "[parameters('workspaceVnetResourceId')]"
@@ -365,12 +436,24 @@
       "properties": {
         "managedResourceGroupId": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('managedResourceGroupName'))]",
         "publicNetworkAccess": "[parameters('publicNetworkAccess')]",
+        "enhancedSecurityCompliance": {
+          "automaticClusterUpdate": {
+            "value": "[parameters('automaticClusterUpdate')]"
+          },
+          "complianceSecurityProfile": {
+            "value": "[parameters('complianceSecurityProfile')]",
+            "complianceStandards": "[parameters('complianceStandards')]"
+          },
+          "enhancedSecurityMonitoring": {
+            "value": "[parameters('enhancedSecurityMonitoring')]"
+          }
+        },
         "requiredNsgRules": "[parameters('requiredNsgRules')]",
         "accessConnector": "[if(equals(parameters('ManagedIdenityType'),'SystemAssigned'),variables('ConnectorSystemAssigned'),variables('connectorUserAssigned'))]",
         "encryption": {
           "entities": "[variables(parameters('CustomerManagedKeyType'))]"
         },
-        "privateDbfsAccess": "[parameters('storageAccountFirewall')]",
+        "defaultStorageFirewall": "[parameters('storageAccountFirewall')]",
         "parameters": {
           "customVirtualNetworkId": {
             "value": "[parameters('workspaceVnetResourceId')]"
@@ -405,8 +488,20 @@
       "properties": {
         "managedResourceGroupId": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('managedResourceGroupName'))]",
         "publicNetworkAccess": "[parameters('publicNetworkAccess')]",
+        "enhancedSecurityCompliance": {
+          "automaticClusterUpdate": {
+            "value": "[parameters('automaticClusterUpdate')]"
+          },
+          "complianceSecurityProfile": {
+            "value": "[parameters('complianceSecurityProfile')]",
+            "complianceStandards": "[parameters('complianceStandards')]"
+          },
+          "enhancedSecurityMonitoring": {
+            "value": "[parameters('enhancedSecurityMonitoring')]"
+          }
+        },
         "requiredNsgRules": "[parameters('requiredNsgRules')]",
-        "privateDbfsAccess": "Disabled",
+        "defaultStorageFirewall": "Disabled",
         "encryption": {
           "entities": "[variables(parameters('CustomerManagedKeyType'))]"
         },
