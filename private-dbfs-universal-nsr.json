@@ -212,7 +212,7 @@
     }
   },
   "variables": {
-    "ApiVersion": "2024-02-01-preview",
+    "ApiVersion": "2024-05-01",
     "workspaceSku": "premium",
     "systemAssignedObject": {
       "type": "[parameters('ManagedIdentityType')]"
