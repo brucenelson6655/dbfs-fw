@@ -242,8 +242,7 @@
       "name": "[parameters('accessConnectorName')]",
       "location": "[parameters('location')]",
       "identity": "[if(equals(parameters('ManagedIdentityType'),'SystemAssigned'),variables('systemAssignedObject'),variables('userAssignedObject'))]",
-      "properties": {},
-      "condition": "[or (and (equals(parameters('storageAccountFirewall'), 'Disabled'), parameters('workspaceCatalogEnabled')), equals(parameters('storageAccountFirewall'), 'Enabled'))]"
+      "properties": {}
     },
     {
       "type": "Microsoft.Databricks/workspaces",
@@ -283,43 +282,7 @@
           }
         }
       },
-      "condition": "[or (and (equals(parameters('storageAccountFirewall'), 'Disabled'), parameters('workspaceCatalogEnabled'), not(parameters('customerManagedKeysEnabled'))), and (equals(parameters('storageAccountFirewall'), 'Enabled'), not(parameters('customerManagedKeysEnabled'))))]"
-    },
-    {
-      "type": "Microsoft.Databricks/workspaces",
-      "apiVersion": "[variables('ApiVersion')]",
-      "name": "[parameters('workspaceName')]",
-      "location": "[parameters('location')]",
-      "sku": {
-        "name": "[variables('workspaceSku')]"
-      },
-      "properties": {
-        "managedResourceGroupId": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('managedResourceGroupName'))]",
-        "publicNetworkAccess": "[parameters('publicNetworkAccess')]",
-        "requiredNsgRules": "[parameters('requiredNsgRules')]",
-        "defaultStorageFirewall": "Disabled",
-        "parameters": {
-          "customVirtualNetworkId": {
-            "value": "[parameters('workspaceVnetResourceId')]"
-          },
-          "customPrivateSubnetName": {
-            "value": "[parameters('workspacePrivateSubnetName')]"
-          },
-          "customPublicSubnetName": {
-            "value": "[parameters('workspacePublicSubnetName')]"
-          },
-          "enableNoPublicIp": {
-            "value": "[parameters('disablePublicIp')]"
-          },
-          "storageAccountName": {
-            "value": "[parameters('storageAccountName')]"
-          },
-          "requireInfrastructureEncryption": {
-            "value": "[parameters('storageDoubleEncryption')]"
-          }
-        }
-      },
-      "condition": "[and (equals(parameters('storageAccountFirewall'), 'Disabled'), not(parameters('workspaceCatalogEnabled')), not(parameters('customerManagedKeysEnabled'))) ]"
+      "condition": "[not(parameters('customerManagedKeysEnabled'))]"
     },
     {
       "type": "Microsoft.Databricks/workspaces",
@@ -362,46 +325,7 @@
           }
         }
       },
-      "condition": "[or ( and ( equals(parameters('storageAccountFirewall'), 'Disabled'), parameters('workspaceCatalogEnabled'), parameters('customerManagedKeysEnabled')), and (equals(parameters('storageAccountFirewall'), 'Enabled'), parameters('customerManagedKeysEnabled')))]"
-    },
-    {
-      "type": "Microsoft.Databricks/workspaces",
-      "apiVersion": "[variables('ApiVersion')]",
-      "name": "[parameters('workspaceName')]",
-      "location": "[parameters('location')]",
-      "sku": {
-        "name": "[variables('workspaceSku')]"
-      },
-      "properties": {
-        "managedResourceGroupId": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('managedResourceGroupName'))]",
-        "publicNetworkAccess": "[parameters('publicNetworkAccess')]",
-        "requiredNsgRules": "[parameters('requiredNsgRules')]",
-        "defaultStorageFirewall": "Disabled",
-        "encryption": {
-          "entities": "[variables(parameters('CustomerManagedKeyType'))]"
-        },
-        "parameters": {
-          "customVirtualNetworkId": {
-            "value": "[parameters('workspaceVnetResourceId')]"
-          },
-          "customPrivateSubnetName": {
-            "value": "[parameters('workspacePrivateSubnetName')]"
-          },
-          "customPublicSubnetName": {
-            "value": "[parameters('workspacePublicSubnetName')]"
-          },
-          "enableNoPublicIp": {
-            "value": "[parameters('disablePublicIp')]"
-          },
-          "storageAccountName": {
-            "value": "[parameters('storageAccountName')]"
-          },
-          "requireInfrastructureEncryption": {
-            "value": "[parameters('storageDoubleEncryption')]"
-          }
-        }
-      },
-      "condition": "[and (equals(parameters('storageAccountFirewall'), 'Disabled'), not(parameters('workspaceCatalogEnabled')), parameters('customerManagedKeysEnabled'))]"
+      "condition": "[parameters('customerManagedKeysEnabled')]"
     }
   ]
 }
