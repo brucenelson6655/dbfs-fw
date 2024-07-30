@@ -87,13 +87,6 @@
         "description": "Enable or Disable firewall support for workspace default storage feature"
       }
     },
-    "workspaceCatalogEnabled": {
-      "defaultValue": false,
-      "type": "Bool",
-      "metadata": {
-        "description": "Is UC workspace catalog enabled ?"
-      }
-    },
     "disablePublicIp": {
       "defaultValue": true,
       "type": "Bool",
