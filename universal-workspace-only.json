@@ -1,0 +1,120 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "workspaceName": {
+      "type": "String",
+      "metadata": {
+        "description": "The name of the Azure Databricks workspace to update."
+      }
+    },
+    "location": {
+      "defaultValue": "[resourceGroup().location]",
+      "type": "String",
+      "metadata": {
+        "description": "Location for all resources."
+      }
+    },
+    "managedResourceGroupName": {
+      "defaultValue": "[format('databricks-rg-{0}-{1}', parameters('workspaceName'), uniqueString(parameters('workspaceName'), resourceGroup().id))]",
+      "type": "String",
+      "metadata": {
+        "description": "The Managed Resource GroupName of the workspace. Do not change unless using a custom managed resource group name."
+      }
+    },
+    "storageAccountName": {
+      "defaultValue": "[concat('dbstorage', uniqueString(resourceGroup().id, subscription().id))]",
+      "type": "String",
+      "metadata": {
+        "description": "Workspace storage account name. Do not change unless using a custom storage account name."
+      }
+    },
+    "workspaceVnetResourceId": {
+      "defaultValue": "Required Resource ID of the workspace VNet",
+      "type": "String",
+      "metadata": {
+        "description": "The Resource ID of the injected VNet for the workspace"
+      }
+    },
+    "workspacePrivateSubnetName": {
+      "defaultValue": "private-subnet",
+      "type": "String",
+      "metadata": {
+        "description": "The private subnet name for the workspace"
+      }
+    },
+    "workspacePublicSubnetName": {
+      "defaultValue": "public-subnet",
+      "type": "String",
+      "metadata": {
+        "description": "The public subnet name for the workspace"
+      }
+    },
+    "disablePublicIp": {
+      "defaultValue": true,
+      "type": "Bool",
+      "metadata": {
+        "description": "Specifies whether to deploy Azure Databricks workspace with secure cluster connectivity (SCC) enabled or not (No Public IP)."
+      }
+    },
+    "publicNetworkAccess": {
+      "defaultValue": "Enabled",
+      "allowedValues": [
+        "Enabled",
+        "Disabled"
+      ],
+      "type": "String",
+      "metadata": {
+        "description": "Indicates whether public network access is allowed to the workspace with private endpoint - possible values are Enabled or Disabled."
+      }
+    },
+    "requiredNsgRules": {
+      "defaultValue": "AllRules",
+      "allowedValues": [
+        "AllRules",
+        "NoAzureDatabricksRules"
+      ],
+      "type": "String",
+      "metadata": {
+        "description": "Indicates whether to retain or remove the AzureDatabricks outbound NSG rule - possible values are AllRules, NoAzureDatabricksRules (private link)."
+      }
+    }
+  },
+  "variables": {
+    "ApiVersion": "2024-05-01",
+    "workspaceSku": "premium"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Databricks/workspaces",
+      "apiVersion": "[variables('ApiVersion')]",
+      "name": "[parameters('workspaceName')]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "[variables('workspaceSku')]"
+      },
+      "properties": {
+        "managedResourceGroupId": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('managedResourceGroupName'))]",
+        "publicNetworkAccess": "[parameters('publicNetworkAccess')]",
+        "requiredNsgRules": "[parameters('requiredNsgRules')]",
+        "parameters": {
+          "customVirtualNetworkId": {
+            "value": "[parameters('workspaceVnetResourceId')]"
+          },
+          "customPrivateSubnetName": {
+            "value": "[parameters('workspacePrivateSubnetName')]"
+          },
+          "customPublicSubnetName": {
+            "value": "[parameters('workspacePublicSubnetName')]"
+          },
+          "enableNoPublicIp": {
+            "value": "[parameters('disablePublicIp')]"
+          },
+          "storageAccountName": {
+            "value": "[parameters('storageAccountName')]"
+          }
+        }
+      }
+    }
+  ]
+}
