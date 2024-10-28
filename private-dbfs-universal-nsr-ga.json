@@ -87,13 +87,6 @@
         "description": "Enable or Disable firewall support for workspace default storage feature"
       }
     },
-    "PrivateArtifactResourceID": {
-      "defaultValue": "** Required for NoArzureServiceRules **",
-      "type": "string",
-      "metadata": {
-        "description": "The resource ID of the private artifact store"
-      }
-    },
     "disablePublicIp": {
       "defaultValue": true,
       "type": "Bool",
@@ -268,7 +261,7 @@
         "publicNetworkAccess": "[parameters('publicNetworkAccess')]",
         "requiredNsgRules": "[parameters('requiredNsgRules')]",
         "privateLinkAssets": [
-          "[parameters('PrivateArtifactResourceID')]"
+          "-"
         ],
         "accessConnector": "[if(equals(parameters('ManagedIdentityType'),'SystemAssigned'),variables('ConnectorSystemAssigned'),variables('connectorUserAssigned'))]",
         "defaultStorageFirewall": "[parameters('storageAccountFirewall')]",
@@ -311,7 +304,7 @@
         "publicNetworkAccess": "[parameters('publicNetworkAccess')]",
         "requiredNsgRules": "[parameters('requiredNsgRules')]",
         "privateLinkAssets": [
-          "[parameters('PrivateArtifactResourceID')]"
+          "-"
         ],
         "accessConnector": "[if(equals(parameters('ManagedIdentityType'),'SystemAssigned'),variables('ConnectorSystemAssigned'),variables('connectorUserAssigned'))]",
         "encryption": {
