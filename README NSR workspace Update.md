@@ -49,20 +49,36 @@ You can use the supplied ARM template to update the Azure Databricks workspace o
 
 1. Create code for  a databricks access connector for the workspace 
 
-   
+ ```
+ resource "azurerm_databricks_access_connector" "ac" {
+ name = "access-connector-name-ac"
+ resource_group_name = resource_group_name
+ location            = resource_group_location
 
-| resource "azurerm\_databricks\_access\_connector" "ac" {  name \= "access-connector-name\-ac"  resource\_group\_name \= resource\_group\_name  location            \= resource\_group\_location   identity {    type \= "SystemAssigned"  }   tags \= local.tags  } |
-| :---- |
 
+ identity {
+   type = "SystemAssigned"
+ }
+
+
+ tags = local.tags
+ }
+ ```
    
 
 2. Add the access connector resource id and set the default\_storage\_firewall\_enabled flag to “true”
 
    
+```
+resource "azurerm_databricks_workspace" "ws" {
+ name                             = "${local.prefix}-ws"
+ resource_group_name              = azurerm_resource_group.rg.name
+ location                         = azurerm_resource_group.rg.location
+ sku                              = "premium"
+ access_connector_id              =    databricks_access_connector_id
+ default_storage_firewall_enabled = true
 
-| resource "azurerm\_databricks\_workspace" "ws" {  name                             \= "${local.prefix}\-ws"  resource\_group\_name              \= azurerm\_resource\_group.rg.name  location                         \= azurerm\_resource\_group.rg.location  sku                              \= "premium"  access\_connector\_id              \=    databricks\_access\_connector\_id  default\_storage\_firewall\_enabled \= true  |
-| :---- |
-
+```
    
 
 3. Perform your plan and apply to complete the upgrade. 
