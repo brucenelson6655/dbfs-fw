@@ -1,0 +1,6 @@
+az databricks workspace update \
+   --resource-group "<resource-group-name>" \
+   --name "<workspace-name>" \
+   --subscription "<subscription-id>" \
+   --default-storage-firewall "Enabled" \
+   --access-connector "{\"id\":\"/subscriptions/<subscription-id>/resourceGroups/<resource-group-name>/providers/Microsoft.Databricks/accessConnectors/<access-connector-name>\", \"identity-type\":\"SystemAssigned\"}"

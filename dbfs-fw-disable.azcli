@@ -1,0 +1,5 @@
+az databricks workspace update \
+   --name "<workspace-name>" \
+   --subscription "<subscription-id>" \
+   --resource-group "<resource-group-name>" \
+   --default-storage-firewall "Disabled"
